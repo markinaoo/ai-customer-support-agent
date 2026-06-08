@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "ai-business-growth-link",
+      name: "ai-growth-link",
       script: "npm",
       args: "run start",
       cwd: __dirname,
