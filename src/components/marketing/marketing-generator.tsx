@@ -3,39 +3,39 @@
 import { useState } from "react";
 import { Copy, Loader2, Megaphone, WandSparkles } from "lucide-react";
 import type { BusinessProfile } from "@/lib/businesses";
-import { createMarketingDraft, marketingTemplates } from "@/lib/businesses";
+import type { GeneratedMarketingDraft } from "@/lib/deepseek";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input, Select, Textarea } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
 
-type MarketingResult = {
-  title: string;
-  body: string;
-  cta: string;
+type MarketingResponse = {
+  drafts?: GeneratedMarketingDraft[];
+  savedCount?: number;
+  source?: string;
 };
 
 export function MarketingGenerator({ business }: { business: BusinessProfile }) {
-  const [templateId, setTemplateId] = useState(marketingTemplates[0].id);
-  const [serviceName, setServiceName] = useState(business.services[3]?.name ?? business.services[0].name);
-  const [campaignGoal, setCampaignGoal] = useState("本周染烫护理预约");
-  const [result, setResult] = useState<MarketingResult | null>(null);
+  const [serviceName, setServiceName] = useState(business.services[1]?.name ?? business.services[0]?.name ?? "");
+  const [campaignGoal, setCampaignGoal] = useState("提升本周体验课咨询和晚上预约");
+  const [drafts, setDrafts] = useState<GeneratedMarketingDraft[]>([]);
+  const [source, setSource] = useState("");
+  const [savedCount, setSavedCount] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedChannel, setCopiedChannel] = useState("");
 
   async function generate() {
     setLoading(true);
-    setCopied(false);
+    setCopiedChannel("");
     setError("");
 
     try {
-      const response = await fetch(`/api/marketing/${business.slug}`, {
+      const response = await fetch(`/api/dashboard/${business.slug}/marketing`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          templateId,
           serviceName,
           campaignGoal
         })
@@ -45,21 +45,21 @@ export function MarketingGenerator({ business }: { business: BusinessProfile }) 
         throw new Error("Marketing API request failed");
       }
 
-      const data = (await response.json()) as { draft?: MarketingResult };
-      setResult(data.draft ?? null);
+      const data = (await response.json()) as MarketingResponse;
+      setDrafts(data.drafts ?? []);
+      setSource(data.source ?? "");
+      setSavedCount(data.savedCount ?? 0);
     } catch {
-      setResult(createMarketingDraft(business, templateId, serviceName, campaignGoal));
-      setError("网络请求失败，已使用本地Demo模板生成。");
+      setError("生成失败。请确认 DeepSeek 与 Supabase 环境变量已配置，或稍后重试。");
     } finally {
       setLoading(false);
     }
   }
 
-  async function copyResult() {
-    if (!result) return;
-    const text = `${result.title}\n\n${result.body}\n\n${result.cta}`;
+  async function copyDraft(draft: GeneratedMarketingDraft) {
+    const text = `${draft.channel}\n${draft.title}\n\n${draft.body}\n\n${draft.cta}`;
     await navigator.clipboard?.writeText(text);
-    setCopied(true);
+    setCopiedChannel(draft.channel);
   }
 
   return (
@@ -69,7 +69,7 @@ export function MarketingGenerator({ business }: { business: BusinessProfile }) 
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle>营销内容生成器</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">Demo模式使用本地模板生成</p>
+              <p className="mt-1 text-sm text-muted-foreground">生成小红书、抖音和朋友圈文案，并保存到 Supabase</p>
             </div>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary/25 text-[#72500d]">
               <Megaphone className="h-5 w-5" aria-hidden="true" />
@@ -77,16 +77,6 @@ export function MarketingGenerator({ business }: { business: BusinessProfile }) 
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <label className="block space-y-2 text-sm font-medium">
-            内容类型
-            <Select value={templateId} onChange={(event) => setTemplateId(event.target.value)}>
-              {marketingTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </Select>
-          </label>
           <label className="block space-y-2 text-sm font-medium">
             主推服务
             <Select value={serviceName} onChange={(event) => setServiceName(event.target.value)}>
@@ -103,30 +93,43 @@ export function MarketingGenerator({ business }: { business: BusinessProfile }) 
           </label>
           <Button onClick={generate} disabled={loading} className="w-full">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <WandSparkles className="h-4 w-4" aria-hidden="true" />}
-            生成文案
+            生成三类文案
           </Button>
+          {source ? <p className="text-sm text-muted-foreground">来源：{source}，已保存 {savedCount} 条草稿</p> : null}
           {error ? <p className="text-sm text-accent">{error}</p> : null}
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+
+      <div className="grid gap-4">
+        {drafts.length === 0 ? (
+          <Card>
+            <CardHeader>
               <CardTitle>生成结果</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">标题、正文和行动引导可直接编辑</p>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={copyResult} disabled={!result}>
-              <Copy className="h-4 w-4" aria-hidden="true" />
-              {copied ? "已复制" : "复制"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input value={result?.title ?? ""} readOnly placeholder="生成后显示标题" />
-          <Textarea value={result?.body ?? ""} readOnly placeholder="生成后显示正文" className="min-h-[320px]" />
-          <Input value={result?.cta ?? ""} readOnly placeholder="生成后显示行动引导" />
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">点击生成后会显示小红书笔记、抖音短视频脚本和微信朋友圈文案。</CardContent>
+          </Card>
+        ) : null}
+        {drafts.map((draft) => (
+          <Card key={draft.channel}>
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>{draft.channel}</CardTitle>
+                  <p className="mt-1 text-sm font-medium">{draft.title}</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => void copyDraft(draft)}>
+                  <Copy className="h-4 w-4" aria-hidden="true" />
+                  {copiedChannel === draft.channel ? "已复制" : "复制"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-6">
+              <p className="whitespace-pre-wrap text-muted-foreground">{draft.body}</p>
+              <p className="font-medium">{draft.cta}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

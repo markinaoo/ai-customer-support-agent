@@ -13,3 +13,7 @@ export function dashboardPath(slug: string) {
 export function dashboardRoute(slug: string, child: string) {
   return `/dashboard/${slug}/${child}`;
 }
+
+export function landingPagePath(slug: string) {
+  return `/lp/${slug}`;
+}

@@ -2,10 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowRight, Clock, MapPin, MessageCircle, Phone, Sparkles } from "lucide-react";
+import { DemoLabel } from "@/components/demo-label";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getBusiness, getBusinessSlugs } from "@/lib/businesses";
+import { getBusinessSlugs } from "@/lib/businesses";
+import { getBusinessProfile } from "@/lib/business-data";
 import { chatPath, dashboardPath } from "@/lib/routes";
 
 type PageProps = {
@@ -18,7 +20,7 @@ export function generateStaticParams() {
 
 export default async function BusinessProfilePage({ params }: PageProps) {
   const { slug } = await params;
-  const business = getBusiness(slug);
+  const business = await getBusinessProfile(slug);
 
   if (!business) {
     notFound();
@@ -38,6 +40,7 @@ export default async function BusinessProfilePage({ params }: PageProps) {
               <Badge tone="teal" className="border-white/30 bg-white/15 text-white">
                 AI商家主页
               </Badge>
+              <DemoLabel />
             </div>
             <h1 className="mt-5 text-5xl font-semibold leading-[1.12] sm:text-6xl">{business.name}</h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-white/86">{business.description}</p>

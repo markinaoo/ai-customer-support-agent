@@ -1,6 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 
 export function LeadStatusBadge({ status }: { status: string }) {
+  if (status === "Booked") {
+    return <Badge tone="green">{status}</Badge>;
+  }
+
+  if (status === "New" || status === "Contacted") {
+    return <Badge tone="amber">{status}</Badge>;
+  }
+
+  if (status === "Not interested") {
+    return <Badge tone="neutral">{status}</Badge>;
+  }
+
   if (status === "已预约" || status === "已到店") {
     return <Badge tone="green">{status}</Badge>;
   }

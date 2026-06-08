@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, LayoutDashboard, Sparkles } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { defaultDemoBusinessSlug } from "@/lib/businesses";
+import { chatPath, dashboardPath, publicBusinessPath } from "@/lib/routes";
 
 export function PublicHeader() {
   return (
@@ -16,14 +18,14 @@ export function PublicHeader() {
           <Link href="/demo" className={buttonClasses({ variant: "ghost", size: "sm" })}>
             Demo路径
           </Link>
-          <Link href="/business/bella-hair" className={buttonClasses({ variant: "ghost", size: "sm" })}>
+          <Link href={publicBusinessPath(defaultDemoBusinessSlug)} className={buttonClasses({ variant: "ghost", size: "sm" })}>
             商家主页
           </Link>
-          <Link href="/chat/bella-hair" className={buttonClasses({ variant: "ghost", size: "sm" })}>
+          <Link href={chatPath(defaultDemoBusinessSlug)} className={buttonClasses({ variant: "ghost", size: "sm" })}>
             AI客服
           </Link>
         </nav>
-        <Link href="/dashboard/bella-hair" className={buttonClasses({ variant: "primary", size: "sm" })}>
+        <Link href={dashboardPath(defaultDemoBusinessSlug)} className={buttonClasses({ variant: "primary", size: "sm" })}>
           <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">老板看板</span>
           <ArrowRight className="h-4 w-4" aria-hidden="true" />

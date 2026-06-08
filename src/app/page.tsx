@@ -18,6 +18,8 @@ import { PublicHeader } from "@/components/public-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { createMarketingDraft, defaultDemoBusinessSlug, getBusiness, getBusinessLeads } from "@/lib/businesses";
+import { chatPath, dashboardPath, dashboardRoute, publicBusinessPath } from "@/lib/routes";
 
 const painPoints = [
   {
@@ -150,6 +152,17 @@ const faqs = [
 ];
 
 export default function HomePage() {
+  const demoSlug = defaultDemoBusinessSlug;
+  const demoBusiness = getBusiness(demoSlug);
+
+  if (!demoBusiness) {
+    throw new Error("Seed demo business bella-hair is missing.");
+  }
+
+  const demoLeads = getBusinessLeads(demoSlug).slice(0, 3);
+  const demoService = demoBusiness.services[3] ?? demoBusiness.services[0];
+  const demoDraft = createMarketingDraft(demoBusiness, "moments", demoService.name, "本周预约");
+
   return (
     <div className="min-h-screen bg-background">
       <PublicHeader />
@@ -179,7 +192,7 @@ export default function HomePage() {
                   <ArrowRight className="h-5 w-5" aria-hidden="true" />
                 </Link>
                 <Link
-                  href="/chat/bella-hair"
+                  href={chatPath(demoSlug)}
                   className={buttonClasses({
                     variant: "outline",
                     size: "lg",
@@ -251,7 +264,7 @@ export default function HomePage() {
                   不需要先做复杂系统。先给门店一个能发出去、能被扫码、能接住咨询的增长入口。
                 </p>
               </div>
-              <Link href="/business/bella-hair" className={buttonClasses({ variant: "outline" })}>
+              <Link href={publicBusinessPath(demoSlug)} className={buttonClasses({ variant: "outline" })}>
                 查看商家主页样例
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -315,7 +328,7 @@ export default function HomePage() {
               <p className="mt-4 text-muted-foreground">
                 看访问、看会话、看线索、看预约状态。重点不是报表好看，而是让老板少漏掉能成交的人。
               </p>
-              <Link href="/dashboard/bella-hair" className={buttonClasses({ variant: "primary", className: "mt-6" })}>
+              <Link href={dashboardPath(demoSlug)} className={buttonClasses({ variant: "primary", className: "mt-6" })}>
                 打开老板看板
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -334,15 +347,11 @@ export default function HomePage() {
                 ))}
               </div>
               <div className="mt-4 rounded-md border border-border bg-card">
-                {[
-                  ["张女士", "想做染发，周六下午，预算300-500元", "待跟进"],
-                  ["陈先生", "男士剪发，今晚19:00到店", "已预约"],
-                  ["王女士", "咨询中长发烫发价格", "AI处理中"]
-                ].map(([name, need, status]) => (
-                  <div key={name} className="grid gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[90px_1fr_90px] sm:items-center">
-                    <p className="font-medium">{name}</p>
-                    <p className="text-sm text-muted-foreground">{need}</p>
-                    <p className="text-sm text-primary">{status}</p>
+                {demoLeads.map((lead) => (
+                  <div key={lead.id} className="grid gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[90px_1fr_90px] sm:items-center">
+                    <p className="font-medium">{lead.name}</p>
+                    <p className="text-sm text-muted-foreground">{lead.intent}</p>
+                    <p className="text-sm text-primary">{lead.status}</p>
                   </div>
                 ))}
               </div>
@@ -362,18 +371,18 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {["主推服务：染发", "目标：本周预约", "渠道：朋友圈"].map((item) => (
+              {[`主推服务：${demoService.name}`, "目标：本周预约", "渠道：朋友圈"].map((item) => (
                 <div key={item} className="rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
                   {item}
                 </div>
               ))}
             </div>
             <div className="mt-4 rounded-md border border-border bg-background p-4">
-              <p className="font-semibold">贝拉造型美学｜染发 ¥299起</p>
+              <p className="font-semibold">{demoDraft.title}</p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                想换一个更显白、更适合通勤的发色，可以先通过AI客服说明发长、预算和想来的时间。系统会先回答常见问题，再帮门店记录高意向咨询。
+                {demoDraft.body}
               </p>
-              <p className="mt-3 text-sm font-medium text-primary">点击AI商家链接，先咨询再预约。</p>
+              <p className="mt-3 text-sm font-medium text-primary">{demoDraft.cta}</p>
             </div>
           </div>
           <div>
@@ -382,7 +391,7 @@ export default function HomePage() {
             <p className="mt-4 text-muted-foreground">
               老板只要选择服务项目和推广目标，就能快速拿到一版可修改、可发布的中文内容。
             </p>
-            <Link href="/dashboard/bella-hair/marketing" className={buttonClasses({ variant: "outline", className: "mt-6" })}>
+            <Link href={dashboardRoute(demoSlug, "marketing")} className={buttonClasses({ variant: "outline", className: "mt-6" })}>
               查看营销生成器
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
@@ -479,7 +488,7 @@ export default function HomePage() {
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
               <Link
-                href="/chat/bella-hair"
+                href={chatPath(demoSlug)}
                 className={buttonClasses({
                   variant: "outline",
                   size: "lg",

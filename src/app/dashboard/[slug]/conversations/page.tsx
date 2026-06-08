@@ -3,7 +3,8 @@ import { Bot, MessageSquareText, UserRound } from "lucide-react";
 import { LeadStatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getBusiness, getBusinessConversations } from "@/lib/businesses";
+import { getBusinessConversations } from "@/lib/businesses";
+import { getBusinessProfile } from "@/lib/business-data";
 import { cn } from "@/lib/utils";
 
 type PageProps = {
@@ -12,7 +13,7 @@ type PageProps = {
 
 export default async function ConversationsPage({ params }: PageProps) {
   const { slug } = await params;
-  const business = getBusiness(slug);
+  const business = await getBusinessProfile(slug);
 
   if (!business) {
     notFound();

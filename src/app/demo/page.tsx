@@ -1,14 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BotMessageSquare, LayoutDashboard, Megaphone, QrCode, Store, UsersRound } from "lucide-react";
+import { DemoLabel } from "@/components/demo-label";
 import { PublicHeader } from "@/components/public-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getBusiness } from "@/lib/businesses";
+import { defaultDemoBusinessSlug, getBusiness } from "@/lib/businesses";
 import { chatPath, dashboardPath, dashboardRoute, publicBusinessPath } from "@/lib/routes";
 
-const slug = "bella-hair";
+const slug = defaultDemoBusinessSlug;
 
 const journey = [
   {
@@ -59,7 +60,10 @@ export default function DemoPage() {
         <section className="border-b border-border bg-card">
           <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_420px] lg:items-center">
             <div>
-              <Badge tone="teal">完整客户旅程</Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="teal">完整客户旅程</Badge>
+                <DemoLabel />
+              </div>
               <h1 className="mt-4 text-4xl font-semibold leading-tight">从一个AI商家链接，到线索、会话和营销闭环</h1>
               <p className="mt-4 max-w-2xl text-muted-foreground">
                 当前演示商家是 {business?.name}，行业为{business?.industry}。所有页面都通过 slug 路由组织，后续可以继续添加更多商家数据。
@@ -75,8 +79,8 @@ export default function DemoPage() {
               </div>
             </div>
             <Image
-              src="/images/hero-bella-hair.jpg"
-              alt="贝拉造型美学门店内景"
+              src={business?.heroImage ?? "/images/hero-bella-hair.jpg"}
+              alt={`${business?.name ?? "Demo商家"}门店内景`}
               width={1000}
               height={750}
               priority

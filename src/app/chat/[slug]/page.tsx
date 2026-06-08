@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Store } from "lucide-react";
 import { AIChat } from "@/components/chat/ai-chat";
+import { DemoLabel } from "@/components/demo-label";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
-import { getBusiness, getBusinessSlugs } from "@/lib/businesses";
+import { getBusinessSlugs } from "@/lib/businesses";
+import { getBusinessProfile } from "@/lib/business-data";
 import { publicBusinessPath } from "@/lib/routes";
 
 type PageProps = {
@@ -17,7 +19,7 @@ export function generateStaticParams() {
 
 export default async function ChatPage({ params }: PageProps) {
   const { slug } = await params;
-  const business = getBusiness(slug);
+  const business = await getBusinessProfile(slug);
 
   if (!business) {
     notFound();
@@ -31,6 +33,7 @@ export default async function ChatPage({ params }: PageProps) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="teal">{business.industry}</Badge>
               <Badge tone="amber">AI客服Demo</Badge>
+              <DemoLabel />
             </div>
             <h1 className="mt-2 text-2xl font-semibold">{business.name} AI客服</h1>
           </div>

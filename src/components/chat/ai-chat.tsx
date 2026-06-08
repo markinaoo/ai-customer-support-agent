@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useRef, useState } from "react";
 import { Bot, Loader2, Send, UserRound } from "lucide-react";
+import { DemoLabel } from "@/components/demo-label";
 import type { BusinessProfile } from "@/lib/businesses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,10 +17,11 @@ type ChatMessage = {
 
 export function AIChat({ business }: { business: BusinessProfile }) {
   const idCounter = useRef(0);
+  const sessionId = useRef("");
   const quickPrompts = [
-    `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
-    `${business.services[1]?.name ?? "热门项目"}多少钱？`,
-    "可以指定老师吗？",
+    business.slug === "luna-fit" ? "你们私教多少钱？" : `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
+    business.slug === "luna-fit" ? "我没有基础可以吗？" : `${business.services[1]?.name ?? "热门项目"}多少钱？`,
+    business.slug === "luna-fit" ? "晚上可以预约吗？" : "可以指定老师吗？",
     "门店地址在哪里？"
   ];
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -31,6 +33,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [leadCaptured, setLeadCaptured] = useState(false);
 
   const leadSignals = useMemo(() => {
     const joined = messages.map((message) => message.content).join(" ");
@@ -44,6 +47,14 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   function nextMessageId(prefix: string) {
     idCounter.current += 1;
     return `${prefix}-${idCounter.current}`;
+  }
+
+  function getSessionId() {
+    if (!sessionId.current) {
+      sessionId.current = createSessionId(business.slug);
+    }
+
+    return sessionId.current;
   }
 
   async function sendMessage(text: string) {
@@ -66,10 +77,23 @@ export function AIChat({ business }: { business: BusinessProfile }) {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message: trimmed })
+        body: JSON.stringify({
+          message: trimmed,
+          sessionId: getSessionId(),
+          history: [...messages, userMessage].slice(-10)
+        })
       });
 
-      const data = (await response.json()) as { reply?: string };
+      const data = (await response.json()) as { reply?: string; leadCaptured?: boolean; sessionId?: string; error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "AI request failed");
+      }
+
+      if (data.sessionId) {
+        sessionId.current = data.sessionId;
+      }
+      setLeadCaptured(Boolean(data.leadCaptured));
       setMessages((current) => [
         ...current,
         {
@@ -78,13 +102,16 @@ export function AIChat({ business }: { business: BusinessProfile }) {
           content: data.reply ?? "已收到，我会先记录你的需求。"
         }
       ]);
-    } catch {
+    } catch (error) {
       setMessages((current) => [
         ...current,
         {
           id: nextMessageId("ai-error"),
           role: "ai",
-          content: "当前是本地Demo模式，接口暂时没有响应。你可以稍后重试。"
+          content:
+            error instanceof Error
+              ? `AI服务暂时不可用：${error.message}`
+              : "AI服务暂时不可用。请确认 DeepSeek 和 Supabase 环境变量后重试。"
         }
       ]);
     } finally {
@@ -104,7 +131,10 @@ export function AIChat({ business }: { business: BusinessProfile }) {
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle>AI客户咨询</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">基于门店信息和FAQ的模拟回复</p>
+              <p className="mt-1 text-sm text-muted-foreground">基于门店信息、FAQ 和 DeepSeek 的咨询回复</p>
+              <div className="mt-2">
+                <DemoLabel />
+              </div>
             </div>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
               <Bot className="h-5 w-5" aria-hidden="true" />
@@ -180,6 +210,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
             <Signal label="项目意向" active={leadSignals.hasService} />
             <Signal label="到店时间" active={leadSignals.hasTime} />
             <Signal label="价格预算" active={leadSignals.hasBudget} />
+            <Signal label="已保存线索" active={leadCaptured} />
           </CardContent>
         </Card>
         <Card>
@@ -198,6 +229,14 @@ export function AIChat({ business }: { business: BusinessProfile }) {
       </div>
     </div>
   );
+}
+
+function createSessionId(slug: string) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `chat-${slug}-${crypto.randomUUID()}`;
+  }
+
+  return `chat-${slug}-${String(Date.now())}`;
 }
 
 function Signal({ label, active }: { label: string; active: boolean }) {

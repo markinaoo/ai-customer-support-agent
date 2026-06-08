@@ -13,6 +13,137 @@ Open `http://localhost:3000`.
 
 This workspace also includes `Open AI Growth Link.cmd`, which starts the local dev server with the bundled portable Node setup used on this machine.
 
+## Real LUNA FIT Demo Setup
+
+The fictional demo client is `LUNA FIT 私教健身工作室`.
+
+Important label shown on demo pages:
+
+```text
+示例门店，仅用于功能演示
+```
+
+To activate the real database and AI path:
+
+1. Create a Supabase project.
+2. Open Supabase SQL editor and run `supabase/schema.sql`.
+3. Copy `.env.example` to `.env.local`.
+4. Set:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+DEEPSEEK_API_KEY=
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_FAST_MODEL=deepseek-v4-flash
+DEEPSEEK_PRO_MODEL=deepseek-v4-pro
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+5. Start the app and seed the demo data:
+
+```bash
+curl -X POST http://localhost:3000/api/admin/seed-demo \
+  -H "Content-Type: application/json" \
+  -d "{\"confirm\":\"seed-luna-fit\"}"
+```
+
+If `ADMIN_SEED_TOKEN` is set, include:
+
+```bash
+-H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Real-demo routes:
+
+- `/business/luna-fit`
+- `/chat/luna-fit`
+- `/dashboard/luna-fit`
+- `/dashboard/luna-fit/leads`
+- `/dashboard/luna-fit/marketing`
+- `/dashboard/luna-fit/deployment`
+- `/lp/luna-fit`
+
+Security notes:
+
+- `SUPABASE_SERVICE_ROLE_KEY` is used only in server-side modules and API routes.
+- `DEEPSEEK_API_KEY` is used only in server-side API routes.
+- Frontend chat and marketing components call same-origin API routes, not DeepSeek directly.
+
+## Baota / BT Panel Deployment Steps
+
+Recommended server: Tencent Cloud Hong Kong Ubuntu, Node.js 22.13+ LTS, PM2, and Nginx installed from Baota / BT Panel.
+
+1. In Baota, create a new website and bind your domain.
+2. Upload or `git clone` this project to the website directory, for example `/www/wwwroot/ai-business-growth-link`.
+3. In the Baota terminal, enter the project directory:
+
+```bash
+cd /www/wwwroot/ai-business-growth-link
+```
+
+4. Install dependencies:
+
+```bash
+npm install
+```
+
+5. Copy `.env.example` to `.env` and set your production domain:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Example:
+
+```bash
+PORT=3000
+NEXT_PUBLIC_APP_URL=https://your-domain.com
+```
+
+6. Build the Next.js app:
+
+```bash
+npm run build
+```
+
+7. Start with PM2:
+
+```bash
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+```
+
+8. In Baota, configure Nginx reverse proxy from your domain to the local Next.js app.
+
+## Nginx Reverse Proxy Setup
+
+Reverse proxy target:
+
+```text
+http://127.0.0.1:3000
+```
+
+Example Nginx location block:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+```
+
+In Baota, you can add this through Website Settings -> Reverse Proxy, or paste the location block into the Nginx site config if you manage it manually.
+
 ## How To Deploy To Vercel
 
 1. Push this project to a GitHub/GitLab/Bitbucket repository.
@@ -50,6 +181,9 @@ npm run build
 - `/business/glow-skin`
 - `/chat/glow-skin`
 - `/dashboard/glow-skin`
+- `/business/luna-fit`
+- `/chat/luna-fit`
+- `/dashboard/luna-fit`
 
 Dashboard child routes are also available:
 
@@ -61,11 +195,12 @@ Dashboard child routes are also available:
 
 ## What Is Currently Demo / Mock
 
-- Business data is mock data in `src/lib/businesses.ts`.
-- Leads and conversations are mock records.
-- AI chat replies are local mock logic.
-- Marketing generation uses local templates.
-- QR code is a visual placeholder.
+- Bella Hair, Lily Nail, and Glow Skin are mock data in `src/lib/businesses.ts`.
+- LUNA FIT is a fictional demo client. With Supabase and DeepSeek env vars configured, it uses real database reads/writes and real AI API calls.
+- Without Supabase or DeepSeek env vars, LUNA FIT falls back to local demo data and local fallback replies so the UI can still be previewed.
+- Older mock leads and conversations remain for the beauty demo businesses.
+- QR code generation is demo-ready and uses the current public AI chat link.
+- Website widget script is still a placeholder and does not load a real widget.
 - Settings forms do not persist changes.
 - Dashboard metrics are demo calculations.
 - Authentication is not implemented.

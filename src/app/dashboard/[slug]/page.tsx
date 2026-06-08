@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
-import { getBusiness, getBusinessConversations, getBusinessLeads, getBusinessMetrics } from "@/lib/businesses";
+import { getBusinessConversations, getBusinessMetrics } from "@/lib/businesses";
+import { getBusinessProfile, getDashboardLeads } from "@/lib/business-data";
 import { dashboardRoute } from "@/lib/routes";
 
 type PageProps = {
@@ -16,15 +17,30 @@ type PageProps = {
 
 export default async function DashboardOverviewPage({ params }: PageProps) {
   const { slug } = await params;
-  const business = getBusiness(slug);
+  const business = await getBusinessProfile(slug);
 
   if (!business) {
     notFound();
   }
 
-  const metrics = getBusinessMetrics(slug);
-  const scopedLeads = getBusinessLeads(slug);
+  const scopedLeads = await getDashboardLeads(slug);
   const scopedConversations = getBusinessConversations(slug);
+  const mockMetrics = getBusinessMetrics(slug);
+  const bookedCount = scopedLeads.filter((lead) => lead.status === "Booked").length;
+  const metrics = {
+    ...mockMetrics,
+    newLeads: scopedLeads.length,
+    booked: bookedCount,
+    conversionRate: scopedLeads.length ? `${Math.round((bookedCount / scopedLeads.length) * 100)}%` : "0%"
+  };
+  const todayTasks = [
+    ...scopedLeads
+      .filter((lead) => lead.status === "New")
+      .slice(0, 2)
+      .map((lead) => `联系${lead.name}确认${lead.serviceNeeded || "咨询需求"}`),
+    scopedConversations[0] ? `查看${scopedConversations[0].customer}的${scopedConversations[0].intent}会话摘要` : null,
+    `更新${business.services[0]?.name ?? business.industry}本周营销内容`
+  ].filter((task): task is string => Boolean(task)).slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -65,7 +81,7 @@ export default async function DashboardOverviewPage({ params }: PageProps) {
                         <p className="font-medium">{lead.name}</p>
                         <p className="text-xs text-muted-foreground">{lead.phone}</p>
                       </Td>
-                      <Td>{lead.intent}</Td>
+                      <Td>{lead.serviceNeeded || lead.customerMessage}</Td>
                       <Td>
                         <LeadStatusBadge status={lead.status} />
                       </Td>
@@ -84,11 +100,7 @@ export default async function DashboardOverviewPage({ params }: PageProps) {
             <p className="mt-1 text-sm text-muted-foreground">根据Mock会话生成</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              "联系张女士确认周六染发排班",
-              "给王女士发送中长发烫发价格区间",
-              "把本周空档发到老客微信群"
-            ].map((task, index) => (
+            {todayTasks.map((task, index) => (
               <div key={task} className="flex gap-3 rounded-md border border-border p-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted font-mono text-xs">
                   {index + 1}

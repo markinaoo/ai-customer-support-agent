@@ -3,7 +3,7 @@ import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
-import { getBusiness } from "@/lib/businesses";
+import { getBusinessProfile } from "@/lib/business-data";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -11,7 +11,7 @@ type PageProps = {
 
 export default async function SettingsPage({ params }: PageProps) {
   const { slug } = await params;
-  const business = getBusiness(slug);
+  const business = await getBusinessProfile(slug);
 
   if (!business) {
     notFound();

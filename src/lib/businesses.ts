@@ -1,16 +1,4 @@
-export type Service = {
-  name: string;
-  price: string;
-  description: string;
-  duration: string;
-};
-
-export type FAQ = {
-  question: string;
-  answer: string;
-};
-
-export type BusinessProfile = {
+export type Business = {
   slug: string;
   name: string;
   industry: string;
@@ -24,6 +12,27 @@ export type BusinessProfile = {
   handoffMessage: string;
   heroImage: string;
   coverImage: string;
+};
+
+export type Service = {
+  id: string;
+  businessSlug: string;
+  name: string;
+  price: string;
+  description: string;
+  duration: string;
+  sortOrder: number;
+};
+
+export type FAQ = {
+  id: string;
+  businessSlug: string;
+  question: string;
+  answer: string;
+  sortOrder: number;
+};
+
+export type BusinessProfile = Business & {
   services: Service[];
   faqs: FAQ[];
 };
@@ -66,7 +75,28 @@ export type MarketingTemplate = {
   description: string;
 };
 
-export const businesses: Record<string, BusinessProfile> = {
+export type MarketingDraft = {
+  id: string;
+  businessSlug: string;
+  templateId: string;
+  serviceName: string;
+  campaignGoal: string;
+  title: string;
+  body: string;
+  cta: string;
+  createdAt: string;
+};
+
+type SeedService = Omit<Service, "id" | "businessSlug" | "sortOrder">;
+type SeedFAQ = Omit<FAQ, "id" | "businessSlug" | "sortOrder">;
+type SeedBusinessProfile = Business & {
+  services: SeedService[];
+  faqs: SeedFAQ[];
+};
+
+export const defaultDemoBusinessSlug = "bella-hair";
+
+const seedBusinessProfiles: Record<string, SeedBusinessProfile> = {
   "bella-hair": {
     slug: "bella-hair",
     name: "贝拉造型美学",
@@ -412,6 +442,40 @@ export const businesses: Record<string, BusinessProfile> = {
   }
 };
 
+export const businesses: Business[] = Object.values(seedBusinessProfiles).map((profile) => ({
+  slug: profile.slug,
+  name: profile.name,
+  industry: profile.industry,
+  address: profile.address,
+  openingHours: profile.openingHours,
+  phone: profile.phone,
+  wechat: profile.wechat,
+  tagline: profile.tagline,
+  description: profile.description,
+  brandTone: profile.brandTone,
+  handoffMessage: profile.handoffMessage,
+  heroImage: profile.heroImage,
+  coverImage: profile.coverImage
+}));
+
+export const services: Service[] = Object.values(seedBusinessProfiles).flatMap((business) =>
+  business.services.map((service, index) => ({
+    id: `${business.slug}-service-${index + 1}`,
+    businessSlug: business.slug,
+    sortOrder: index + 1,
+    ...service
+  }))
+);
+
+export const faqs: FAQ[] = Object.values(seedBusinessProfiles).flatMap((business) =>
+  business.faqs.map((faq, index) => ({
+    id: `${business.slug}-faq-${index + 1}`,
+    businessSlug: business.slug,
+    sortOrder: index + 1,
+    ...faq
+  }))
+);
+
 export const leads: Lead[] = [
   {
     id: "L-1008",
@@ -743,20 +807,83 @@ export const marketingTemplates: MarketingTemplate[] = [
   }
 ];
 
-export function getBusiness(slug: string) {
-  return businesses[slug];
+export const marketing_drafts: MarketingDraft[] = [
+  {
+    id: "MD-1001",
+    businessSlug: "bella-hair",
+    templateId: "moments",
+    serviceName: "显白染发",
+    campaignGoal: "提升本周染发预约",
+    title: "贝拉造型美学｜显白染发 ¥299起",
+    body:
+      "想换一个更显白、更适合通勤的发色，可以先通过AI客服说明发长、预算和想来的时间。系统会先回答常见问题，再帮门店记录高意向咨询。",
+    cta: "点击AI商家链接，先咨询再预约。",
+    createdAt: "今天 09:30"
+  },
+  {
+    id: "MD-2101",
+    businessSlug: "lily-nail",
+    templateId: "xiaohongshu",
+    serviceName: "猫眼美甲",
+    campaignGoal: "吸引周末美甲预约",
+    title: "猫眼美甲体验｜显白又有氛围感",
+    body:
+      "想做显白猫眼款，可以先把图片、预算和想来的时间发给AI客服。系统会先说明价格区间和所需时间，再同步给美甲师确认档期。",
+    cta: "点开AI商家链接，先发图咨询。",
+    createdAt: "今天 10:20"
+  },
+  {
+    id: "MD-3101",
+    businessSlug: "glow-skin",
+    templateId: "group",
+    serviceName: "敏感肌舒缓修护",
+    campaignGoal: "预约敏感肌咨询",
+    title: "Glow Skin Care 本周敏感肌护理咨询",
+    body:
+      "近期脸部泛红、紧绷或屏障不稳定的顾客，可以先通过AI客服说明肤质、过敏史和想预约的时间，再由皮肤管理师确认是否适合项目。",
+    cta: "回复肤质+时间，AI客服会先帮你登记。",
+    createdAt: "昨天 18:00"
+  }
+];
+
+export function getBusiness(slug: string): BusinessProfile | undefined {
+  const business = businesses.find((item) => item.slug === slug);
+
+  if (!business) {
+    return undefined;
+  }
+
+  return {
+    ...business,
+    services: getBusinessServices(slug),
+    faqs: getBusinessFaqs(slug)
+  };
 }
 
-export function getBusinessSlugs() {
-  return Object.keys(businesses);
+export function getBusinessSlugs(): string[] {
+  return businesses.map((business) => business.slug);
 }
 
-export function getBusinessLeads(slug: string) {
+export function getBusinessServices(slug: string): Service[] {
+  return services
+    .filter((service) => service.businessSlug === slug)
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
+export function getBusinessFaqs(slug: string): FAQ[] {
+  return faqs.filter((faq) => faq.businessSlug === slug).sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
+export function getBusinessLeads(slug: string): Lead[] {
   return leads.filter((lead) => lead.businessSlug === slug);
 }
 
-export function getBusinessConversations(slug: string) {
+export function getBusinessConversations(slug: string): Conversation[] {
   return conversations.filter((conversation) => conversation.businessSlug === slug);
+}
+
+export function getBusinessMarketingDrafts(slug: string): MarketingDraft[] {
+  return marketing_drafts.filter((draft) => draft.businessSlug === slug);
 }
 
 export function getBusinessMetrics(slug: string) {

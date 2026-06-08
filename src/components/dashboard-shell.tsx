@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Store } from "lucide-react";
 import type { BusinessProfile } from "@/lib/businesses";
 import { DashboardNav } from "@/components/dashboard-nav";
+import { DemoLabel } from "@/components/demo-label";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { chatPath, publicBusinessPath } from "@/lib/routes";
@@ -36,7 +37,7 @@ export function DashboardShell({
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone="teal">{business.industry}</Badge>
-                  <Badge tone="amber">Demo数据</Badge>
+                  <DemoLabel />
                 </div>
                 <h1 className="mt-2 text-2xl font-semibold">商家增长链接控制台</h1>
               </div>
