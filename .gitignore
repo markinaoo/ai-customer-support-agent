@@ -7,6 +7,7 @@ node_modules
 out
 .vercel
 ai-growth-link-video/
+ai-growth-link-deploy.zip
 
 # production
 build

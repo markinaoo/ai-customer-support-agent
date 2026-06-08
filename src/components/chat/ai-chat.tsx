@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useRef, useState } from "react";
-import { Bot, Loader2, Send, UserRound } from "lucide-react";
+import { Loader2, MessageCircle, Send, UserRound } from "lucide-react";
 import { DemoLabel } from "@/components/demo-label";
 import type { BusinessProfile } from "@/lib/businesses";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ type ChatMessage = {
 export function AIChat({ business }: { business: BusinessProfile }) {
   const idCounter = useRef(0);
   const sessionId = useRef("");
+  const assistantLabel = business.assistantLabel ?? "在线咨询顾问";
+  const assistantIntro =
+    business.assistantIntro ?? `你好，我是 ${business.name} 的在线咨询顾问。可以先帮你了解价格、预约、营业时间、地址和到店准备。`;
   const quickPrompts = [
     business.slug === "luna-fit" ? "你们私教多少钱？" : `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
     business.slug === "luna-fit" ? "我没有基础可以吗？" : `${business.services[1]?.name ?? "热门项目"}多少钱？`,
@@ -28,7 +31,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     {
       id: "welcome",
       role: "ai",
-      content: `你好，我是 ${business.name} 的AI客服。可以咨询价格、预约、营业时间、地址和老师档期。`
+      content: assistantIntro
     }
   ]);
   const [input, setInput] = useState("");
@@ -40,7 +43,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     return {
       hasBudget: /¥|价格|多少钱|预算/.test(joined),
       hasTime: /今天|明天|周|下午|晚上|预约/.test(joined),
-      hasService: /剪发|染发|烫发|护理|造型|美甲|美睫|睫毛|卸甲|皮肤|清洁|补水|修护/.test(joined)
+      hasService: /剪发|染发|烫发|护理|造型|美甲|美睫|睫毛|卸甲|皮肤|清洁|补水|修护|私教|体测|减脂|塑形|训练|体验课/.test(joined)
     };
   }, [messages]);
 
@@ -102,16 +105,13 @@ export function AIChat({ business }: { business: BusinessProfile }) {
           content: data.reply ?? "已收到，我会先记录你的需求。"
         }
       ]);
-    } catch (error) {
+    } catch {
       setMessages((current) => [
         ...current,
         {
           id: nextMessageId("ai-error"),
           role: "ai",
-          content:
-            error instanceof Error
-              ? `AI服务暂时不可用：${error.message}`
-              : "AI服务暂时不可用。请确认 DeepSeek 和 Supabase 环境变量后重试。"
+          content: `现在咨询人数较多，我先帮你记录下来。也可以直接加微信 ${business.wechat}，工作人员会尽快确认。`
         }
       ]);
     } finally {
@@ -130,14 +130,14 @@ export function AIChat({ business }: { business: BusinessProfile }) {
         <CardHeader className="border-b border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <CardTitle>AI客户咨询</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">基于门店信息、FAQ 和 DeepSeek 的咨询回复</p>
+              <CardTitle>{assistantLabel}</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">可咨询价格、预约时间、到店准备和项目选择</p>
               <div className="mt-2">
                 <DemoLabel />
               </div>
             </div>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Bot className="h-5 w-5" aria-hidden="true" />
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
             </span>
           </div>
         </CardHeader>
@@ -150,7 +150,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
               >
                 {message.role === "ai" ? (
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                    <Bot className="h-4 w-4" aria-hidden="true" />
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   </span>
                 ) : null}
                 <div
@@ -171,7 +171,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                AI正在生成回复
+                正在输入...
               </div>
             ) : null}
           </div>
@@ -204,13 +204,13 @@ export function AIChat({ business }: { business: BusinessProfile }) {
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>线索识别</CardTitle>
+            <CardTitle>咨询进度</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Signal label="项目意向" active={leadSignals.hasService} />
             <Signal label="到店时间" active={leadSignals.hasTime} />
             <Signal label="价格预算" active={leadSignals.hasBudget} />
-            <Signal label="已保存线索" active={leadCaptured} />
+            <Signal label="已记录需求" active={leadCaptured} />
           </CardContent>
         </Card>
         <Card>
@@ -223,7 +223,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
             <p>电话：{business.phone}</p>
             <p>微信：{business.wechat}</p>
             <p>品牌语气：{business.brandTone}</p>
-            <p>转人工话术：{business.handoffMessage}</p>
+            <p>跟进说明：{business.handoffMessage}</p>
           </CardContent>
         </Card>
       </div>

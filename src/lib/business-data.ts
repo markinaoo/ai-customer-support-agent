@@ -165,6 +165,7 @@ export function isLeadStatus(status: unknown): status is LeadStatus {
 }
 
 function mapBusinessProfile(business: BusinessRow, services: ServiceRow[], faqs: FaqRow[]): BusinessProfile {
+  const localBusiness = getLocalBusinessProfile(business.slug);
   const mappedBusiness: Business = {
     slug: business.slug,
     name: business.name,
@@ -177,8 +178,11 @@ function mapBusinessProfile(business: BusinessRow, services: ServiceRow[], faqs:
     description: business.description,
     brandTone: business.brand_tone,
     handoffMessage: business.handoff_message ?? "",
-    heroImage: business.hero_image ?? "/images/hero-ai-growth-link.jpg",
-    coverImage: business.cover_image ?? "/images/hero-ai-growth-link.jpg"
+    heroImage: localBusiness?.heroImage ?? business.hero_image ?? "/images/hero-ai-growth-link.jpg",
+    coverImage: localBusiness?.coverImage ?? business.cover_image ?? "/images/hero-ai-growth-link.jpg",
+    assistantLabel: localBusiness?.assistantLabel,
+    assistantIntro: localBusiness?.assistantIntro,
+    landing: localBusiness?.landing
   };
 
   return {

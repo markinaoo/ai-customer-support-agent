@@ -22,7 +22,7 @@ export function PublicHeader() {
             商家主页
           </Link>
           <Link href={chatPath(defaultDemoBusinessSlug)} className={buttonClasses({ variant: "ghost", size: "sm" })}>
-            AI客服
+            在线咨询
           </Link>
         </nav>
         <Link href={dashboardPath(defaultDemoBusinessSlug)} className={buttonClasses({ variant: "primary", size: "sm" })}>

@@ -38,7 +38,7 @@ export default async function BusinessProfilePage({ params }: PageProps) {
                 {business.industry}
               </Badge>
               <Badge tone="teal" className="border-white/30 bg-white/15 text-white">
-                AI商家主页
+                门店主页
               </Badge>
               <DemoLabel />
             </div>
@@ -47,7 +47,7 @@ export default async function BusinessProfilePage({ params }: PageProps) {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={chatPath(business.slug)} className={buttonClasses({ variant: "secondary", size: "lg" })}>
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                咨询AI客服
+                在线咨询
               </Link>
               <a href={`tel:${business.phone}`} className={buttonClasses({ variant: "outline", size: "lg", className: "border-white/30 bg-white/12 text-white hover:bg-white/20" })}>
                 <Phone className="h-5 w-5" aria-hidden="true" />
@@ -91,7 +91,7 @@ export default async function BusinessProfilePage({ params }: PageProps) {
             <h2 className="mt-4 text-3xl font-semibold">热门项目</h2>
           </div>
           <Link href={chatPath(business.slug)} className={buttonClasses({ variant: "outline" })}>
-            问问AI客服
+            问问在线顾问
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
@@ -116,7 +116,7 @@ export default async function BusinessProfilePage({ params }: PageProps) {
           <div>
             <Badge tone="rose">FAQ</Badge>
             <h2 className="mt-4 text-3xl font-semibold">顾客常见问题</h2>
-            <p className="mt-4 text-muted-foreground">这些问答会作为AI客服的基础知识，后续可接入商家知识库和历史会话持续更新。</p>
+            <p className="mt-4 text-muted-foreground">这些问答会作为在线咨询的基础知识，后续可接入商家知识库和历史会话持续更新。</p>
           </div>
           <div className="grid gap-3">
             {business.faqs.map((faq) => (

@@ -8,13 +8,46 @@ export const lunaFitBusiness: BusinessProfile = {
   openingHours: "周一至周日 09:00-22:00",
   phone: "138-0000-8888",
   wechat: "LUNAFIT888",
-  tagline: "专业私教先帮客户说清目标，再把高意向咨询沉淀为可跟进线索。",
+  tagline: "先了解目标和身体情况，再由工作人员确认合适的体验课安排。",
   description:
     "LUNA FIT 是一家精品私教健身工作室，专注减脂、塑形、体态改善和一对一训练，适合上班族、健身新手和想要长期改善身体状态的人群。",
   brandTone: "专业、亲切、有行动力",
   handoffMessage: "我已经记录你的训练目标和联系方式，稍后门店工作人员会联系你确认体验课或训练安排。",
-  heroImage: "/images/hero-ai-growth-link.jpg",
-  coverImage: "/images/hero-ai-growth-link.jpg",
+  heroImage: "/images/hero-luna-fit.jpg",
+  coverImage: "/images/hero-luna-fit.jpg",
+  assistantLabel: "在线预约助理",
+  assistantIntro: "你好，我是 LUNA FIT 的在线预约助理。可以先帮你了解课程价格、是否适合新手、晚上档期和到店准备。",
+  landing: {
+    eyebrow: "上海精品私教工作室",
+    headline: "想开始训练，先做一次适合你的评估和体验课",
+    subheadline:
+      "LUNA FIT 专注减脂、塑形、体态改善和一对一训练。留下目标和时间后，工作人员会联系你确认合适的课程安排。",
+    primaryCta: "咨询体验课",
+    secondaryCta: "查看课程价格",
+    trustPoints: ["适合健身新手", "一对一动作指导", "工作人员确认预约"],
+    painPoints: ["不知道自己适合什么训练", "担心没有基础跟不上", "晚上想约课但不确定档期"],
+    highlights: [
+      {
+        title: "先评估再训练",
+        description: "通过体测、目标和基础情况判断训练方向，避免盲目开始。"
+      },
+      {
+        title: "价格先讲清楚",
+        description: "体验课、体测、私教课和小团体训练价格公开展示，到店前先了解。"
+      },
+      {
+        title: "预约不自动确认",
+        description: "客户留下时间和联系方式后，由工作人员跟进确认具体档期。"
+      }
+    ],
+    journey: ["扫码进入咨询页", "说明目标和基础", "留下电话或微信", "工作人员确认体验课"],
+    proofMetrics: [
+      { label: "营业时间", value: "09:00-22:00" },
+      { label: "体验课", value: "¥199/次" },
+      { label: "适合人群", value: "新手/上班族" }
+    ],
+    finalCta: "先说说你的训练目标，工作人员会确认适合你的体验课时间。"
+  },
   services: [
     {
       id: "luna-service-1",

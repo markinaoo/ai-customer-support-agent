@@ -8,7 +8,7 @@ export default function NotFound() {
       <div className="max-w-md text-center">
         <p className="text-sm font-medium text-primary">404</p>
         <h1 className="mt-3 text-3xl font-semibold">没有找到这个商家页面</h1>
-        <p className="mt-3 text-muted-foreground">当前Demo已预置 bella-hair，后续可在数据层继续添加更多商家slug。</p>
+        <p className="mt-3 text-muted-foreground">当前Demo已预置 luna-fit、bella-hair 等 slug，后续可在数据层继续添加更多商家。</p>
         <Link href="/demo" className={buttonClasses({ className: "mt-6" })}>
           <Home className="h-4 w-4" aria-hidden="true" />
           返回Demo

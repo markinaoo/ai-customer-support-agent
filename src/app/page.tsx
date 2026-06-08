@@ -156,7 +156,7 @@ export default function HomePage() {
   const demoBusiness = getBusiness(demoSlug);
 
   if (!demoBusiness) {
-    throw new Error("Seed demo business bella-hair is missing.");
+    throw new Error("Seed demo business luna-fit is missing.");
   }
 
   const demoLeads = getBusinessLeads(demoSlug).slice(0, 3);

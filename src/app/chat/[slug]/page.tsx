@@ -32,10 +32,10 @@ export default async function ChatPage({ params }: PageProps) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="teal">{business.industry}</Badge>
-              <Badge tone="amber">AI客服Demo</Badge>
+              <Badge tone="amber">在线咨询Demo</Badge>
               <DemoLabel />
             </div>
-            <h1 className="mt-2 text-2xl font-semibold">{business.name} AI客服</h1>
+            <h1 className="mt-2 text-2xl font-semibold">{business.name} 在线咨询</h1>
           </div>
           <Link href={publicBusinessPath(business.slug)} className={buttonClasses({ variant: "outline", size: "sm" })}>
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />

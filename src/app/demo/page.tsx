@@ -19,7 +19,7 @@ const journey = [
     icon: Store
   },
   {
-    title: "顾客进入AI客服",
+    title: "顾客进入在线咨询",
     description: "先回答预约、价格、项目和到店问题。",
     href: chatPath(slug),
     icon: BotMessageSquare

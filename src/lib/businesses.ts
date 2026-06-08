@@ -1,3 +1,5 @@
+import { lunaFitBusiness } from "@/lib/luna-fit-demo";
+
 export type Business = {
   slug: string;
   name: string;
@@ -12,6 +14,29 @@ export type Business = {
   handoffMessage: string;
   heroImage: string;
   coverImage: string;
+  assistantLabel?: string;
+  assistantIntro?: string;
+  landing?: BusinessLandingContent;
+};
+
+export type BusinessLandingContent = {
+  eyebrow: string;
+  headline: string;
+  subheadline: string;
+  primaryCta: string;
+  secondaryCta: string;
+  trustPoints: string[];
+  painPoints: string[];
+  highlights: Array<{
+    title: string;
+    description: string;
+  }>;
+  journey: string[];
+  proofMetrics: Array<{
+    label: string;
+    value: string;
+  }>;
+  finalCta: string;
 };
 
 export type Service = {
@@ -94,7 +119,7 @@ type SeedBusinessProfile = Business & {
   faqs: SeedFAQ[];
 };
 
-export const defaultDemoBusinessSlug = "bella-hair";
+export const defaultDemoBusinessSlug = "luna-fit";
 
 const seedBusinessProfiles: Record<string, SeedBusinessProfile> = {
   "bella-hair": {
@@ -847,6 +872,10 @@ export const marketing_drafts: MarketingDraft[] = [
 ];
 
 export function getBusiness(slug: string): BusinessProfile | undefined {
+  if (slug === lunaFitBusiness.slug) {
+    return lunaFitBusiness;
+  }
+
   const business = businesses.find((item) => item.slug === slug);
 
   if (!business) {
@@ -861,7 +890,7 @@ export function getBusiness(slug: string): BusinessProfile | undefined {
 }
 
 export function getBusinessSlugs(): string[] {
-  return businesses.map((business) => business.slug);
+  return [lunaFitBusiness.slug, ...businesses.map((business) => business.slug)];
 }
 
 export function getBusinessServices(slug: string): Service[] {
