@@ -139,6 +139,111 @@ export const lunaFitBusiness: BusinessProfile = {
       question: "主要适合哪些人？",
       answer: "适合想减脂、塑形、改善体态、提升体能的上班族和健身新手。",
       sortOrder: 5
+    },
+    {
+      id: "luna-faq-6",
+      businessSlug: "luna-fit",
+      question: "体验课包含什么？",
+      answer: "体验课通常会先沟通训练目标和基础情况，再做基础动作指导，让你了解教练风格和训练强度。具体安排由工作人员确认。",
+      sortOrder: 6
+    },
+    {
+      id: "luna-faq-7",
+      businessSlug: "luna-fit",
+      question: "体测评估会测什么？",
+      answer: "体测评估会了解基础身体数据、体态情况、运动基础和训练目标，用来判断更适合减脂、塑形、体态改善还是基础体能提升。",
+      sortOrder: 7
+    },
+    {
+      id: "luna-faq-8",
+      businessSlug: "luna-fit",
+      question: "减脂课和塑形课有什么区别？",
+      answer: "减脂课更关注消耗、力量基础和训练节奏管理；塑形课更关注线条、臀腿、核心和体态改善。具体选择会结合你的目标确认。",
+      sortOrder: 8
+    },
+    {
+      id: "luna-faq-9",
+      businessSlug: "luna-fit",
+      question: "一周练几次比较合适？",
+      answer: "新手通常可以先从每周2-3次开始，具体频率要看身体基础、恢复情况和训练目标，工作人员会根据你的情况建议。",
+      sortOrder: 9
+    },
+    {
+      id: "luna-faq-10",
+      businessSlug: "luna-fit",
+      question: "会不会强制办卡？",
+      answer: "当前资料里没有强制办卡信息。可以先预约体测评估或体验课，了解适合度后再由工作人员介绍后续训练方案。",
+      sortOrder: 10
+    },
+    {
+      id: "luna-faq-11",
+      businessSlug: "luna-fit",
+      question: "可以只买单次课吗？",
+      answer: "页面展示的体验课、体测评估和小团体训练都有单次价格。长期私教安排和购买方式需要工作人员进一步确认。",
+      sortOrder: 11
+    },
+    {
+      id: "luna-faq-12",
+      businessSlug: "luna-fit",
+      question: "训练会不会受伤？",
+      answer: "训练会根据身体情况和目标安排强度，教练会做动作指导。若有旧伤、疼痛或特殊情况，建议提前告诉工作人员再确认是否适合训练。",
+      sortOrder: 12
+    },
+    {
+      id: "luna-faq-13",
+      businessSlug: "luna-fit",
+      question: "可以帮我安排饮食吗？",
+      answer: "可以围绕减脂或塑形目标给出训练配合建议。具体饮食方案是否提供，需要工作人员根据你的目标和服务安排确认。",
+      sortOrder: 13
+    },
+    {
+      id: "luna-faq-14",
+      businessSlug: "luna-fit",
+      question: "有女教练吗？",
+      answer: "当前资料里没有明确教练性别排班。可以留下想预约的时间和偏好，工作人员会帮你确认是否能安排。",
+      sortOrder: 14
+    },
+    {
+      id: "luna-faq-15",
+      businessSlug: "luna-fit",
+      question: "可以指定教练吗？",
+      answer: "可以先提出偏好，但是否能指定要看教练排班。工作人员会联系你确认具体安排。",
+      sortOrder: 15
+    },
+    {
+      id: "luna-faq-16",
+      businessSlug: "luna-fit",
+      question: "迟到或临时改时间怎么办？",
+      answer: "如果需要改时间，建议尽早联系工作人员确认。具体取消和改约规则需要以工作人员确认为准。",
+      sortOrder: 16
+    },
+    {
+      id: "luna-faq-17",
+      businessSlug: "luna-fit",
+      question: "训练后可以洗澡吗？",
+      answer: "当前资料里没有明确洗浴设施信息。工作人员会在确认预约时一并说明到店设施和注意事项。",
+      sortOrder: 17
+    },
+    {
+      id: "luna-faq-18",
+      businessSlug: "luna-fit",
+      question: "附近停车方便吗？",
+      answer: "当前资料里没有明确停车信息。可以到店前联系工作人员确认附近停车或交通建议。",
+      sortOrder: 18
+    },
+    {
+      id: "luna-faq-19",
+      businessSlug: "luna-fit",
+      question: "多久能看到效果？",
+      answer: "效果和训练频率、饮食、基础情况、执行程度有关，不能保证具体时间。建议先做评估，再制定更适合的阶段目标。",
+      sortOrder: 19
+    },
+    {
+      id: "luna-faq-20",
+      businessSlug: "luna-fit",
+      question: "怎么预约体验课？",
+      answer: "留下姓名、电话或微信、想体验的服务和希望到店时间即可。工作人员会联系你确认档期，不会自动确认预约。",
+      sortOrder: 20
     }
   ]
 };

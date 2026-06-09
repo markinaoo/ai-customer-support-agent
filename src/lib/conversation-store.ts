@@ -128,9 +128,19 @@ export function extractLeadCandidate(
   const name = extractName(combined);
   const serviceNeeded = extractServiceNeeded(business, combined);
   const preferredTime = extractPreferredTime(combined);
-  const hasBookingIntent = /预约|体验|到店|想来|报名|联系|加微信|留个|电话|私教|体测|晚上|明天|周末/.test(combined);
+  const hasContact = Boolean(phone || wechat || name);
+  const hasExplicitBookingIntent = /预约|想来|到店|报名|联系我|加微信|留个|留一下|电话是|微信是|想体验|体验一下|约课|试课/.test(combined);
+  const isPureInfoQuestion = /包含什么|多少钱|价格|有什么|区别|适合|可以吗|会不会|怎么|几次|多久|在哪|地址/.test(latest);
 
-  if (!hasBookingIntent || (!phone && !wechat && !preferredTime && !serviceNeeded)) {
+  if (!hasContact && !preferredTime && !hasExplicitBookingIntent) {
+    return null;
+  }
+
+  if (isPureInfoQuestion && !hasContact && !preferredTime && !hasExplicitBookingIntent) {
+    return null;
+  }
+
+  if (!phone && !wechat && !preferredTime && !serviceNeeded) {
     return null;
   }
 

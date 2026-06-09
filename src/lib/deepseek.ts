@@ -212,6 +212,8 @@ ${faqs}
 规则：
 - 用简短、自然的中文回答。
 - 每次回复控制在 1-3 句，除非客户明确要求详细解释。
+- 优先匹配 FAQ 和服务价格回答，不要泛泛而谈。
+- 回答要像专业预约助理：先回答问题，再引导客户留下目标、联系方式和到店时间。
 - 面向顾客时不要主动强调“AI”。
 - 不要声称自己是真人、老板、教练本人或已经人工确认。
 - 不要编造价格、折扣、地址、营业时间、名额、承诺效果或保证。
@@ -227,6 +229,11 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
   }
 
   const text = message.toLowerCase();
+  const faqReply = findFaqReply(business, message);
+
+  if (faqReply) {
+    return faqReply;
+  }
 
   if (/你好|您好|在吗|有人吗|hi|hello/.test(text)) {
     return "你好，这里是 LUNA FIT 在线咨询。你可以问课程价格、是否适合新手、晚上档期，或直接留下姓名和电话/微信，工作人员会联系确认。";
@@ -315,6 +322,45 @@ function createLocalFallbackReply(business: BusinessProfile, message: string) {
   }
 
   return "收到。LUNA FIT 主要提供体测评估、一对一私教体验课、减脂私教课、塑形私教课、小团体训练和月度训练计划。你可以告诉我目标、预算和希望到店时间，我先帮你记录，工作人员会确认。";
+}
+
+function findFaqReply(business: BusinessProfile, message: string) {
+  const normalizedMessage = normalizeChineseText(message);
+
+  if (!normalizedMessage) {
+    return "";
+  }
+
+  const matchedFaq = business.faqs.find((faq) => {
+    const question = normalizeChineseText(faq.question);
+    const sharedKeywords = getFaqKeywords(question).filter((keyword) => normalizedMessage.includes(keyword));
+    return sharedKeywords.length >= 2 || normalizedMessage.includes(question.replace(/吗$/, ""));
+  });
+
+  if (!matchedFaq) {
+    return "";
+  }
+
+  return `${matchedFaq.answer}${shouldAskForContact(message) ? "" : "如果你想预约，可以留下姓名、电话或微信、希望到店时间，工作人员会联系确认。"}`;
+}
+
+function normalizeChineseText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[？?！!，,。.、；;：:\s]/g, "")
+    .trim();
+}
+
+function getFaqKeywords(value: string) {
+  return value
+    .replace(/可以|需要|什么|怎么|是否|有没有|会不会|比较|合适|主要|哪些|的人|怎么办|吗/g, " ")
+    .split(/\s+/)
+    .flatMap((part) => part.match(/[\u4e00-\u9fa5A-Za-z0-9]{2,}/g) ?? [])
+    .filter((keyword) => keyword.length >= 2);
+}
+
+function shouldAskForContact(message: string) {
+  return /预约|体验|报名|联系|电话|微信|我叫|我是|1[3-9]\d/.test(message);
 }
 
 function parseMarketingDrafts(
