@@ -73,6 +73,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     setMessages((current) => [...current, userMessage]);
     setInput("");
     setLoading(true);
+    const minimumTypingDelay = waitForHumanReplyDelay();
     const outgoingHistory = [...messages, userMessage].slice(-10);
 
     try {
@@ -98,7 +99,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
         sessionId.current = data.sessionId;
       }
       const reply = data.reply ?? "已收到，我会先记录你的需求。";
-      await waitForHumanReplyDelay(reply);
+      await minimumTypingDelay;
       setLeadCaptured(Boolean(data.leadCaptured));
       setMessages((current) => [
         ...current,
@@ -255,12 +256,10 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   );
 }
 
-function waitForHumanReplyDelay(reply: string) {
-  const baseDelay = 650;
-  const lengthDelay = Math.min(reply.length * 12, 1200);
-  const randomDelay = Math.floor(Math.random() * 420);
+function waitForHumanReplyDelay() {
+  const targetDelay = 2200 + Math.floor(Math.random() * 800);
 
-  return new Promise((resolve) => window.setTimeout(resolve, baseDelay + lengthDelay + randomDelay));
+  return new Promise((resolve) => window.setTimeout(resolve, targetDelay));
 }
 
 function createSessionId(slug: string) {
