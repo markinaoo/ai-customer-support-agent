@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBusinessProfile } from "@/lib/business-data";
+import { getPublicLandingConfig } from "@/lib/landing-pages";
 import { chatPath, landingPagePath, publicBusinessPath } from "@/lib/routes";
 
 type PageProps = {
@@ -21,6 +22,8 @@ type PageProps = {
 const usagePlaces = ["微信朋友圈", "微信群", "小红书主页", "抖音主页", "美团/大众点评介绍", "高德地图商家介绍", "线下海报", "前台桌牌"];
 const futureChannels = ["企业微信", "飞书", "钉钉", "微信客服"];
 
+export const dynamic = "force-dynamic";
+
 export default async function DeploymentPage({ params }: PageProps) {
   const { slug } = await params;
   const business = await getBusinessProfile(slug);
@@ -29,6 +32,7 @@ export default async function DeploymentPage({ params }: PageProps) {
     notFound();
   }
 
+  const landingConfig = await getPublicLandingConfig(business);
   const baseUrl = await getAppBaseUrl();
   const publicPath = publicBusinessPath(slug);
   const aiChatPath = chatPath(slug);
@@ -36,8 +40,10 @@ export default async function DeploymentPage({ params }: PageProps) {
   const publicLink = `${baseUrl}${publicPath}`;
   const aiChatLink = `${baseUrl}${aiChatPath}`;
   const landingLink = `${baseUrl}${lpPath}`;
+  const mainQrLink = landingConfig.qrTarget === "chat" ? aiChatLink : landingLink;
+  const mainQrLabel = landingConfig.qrTarget === "chat" ? "在线咨询页" : "客户落地页";
   const widgetScript = `<script src="${baseUrl}/widget.js" data-business-slug="${slug}"></script>`;
-  const qrSvg = await QRCode.toString(aiChatLink, {
+  const qrSvg = await QRCode.toString(mainQrLink, {
     type: "svg",
     width: 260,
     margin: 2,
@@ -55,7 +61,7 @@ export default async function DeploymentPage({ params }: PageProps) {
           <DemoLabel />
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          为 {business.name} 生成演示链接、AI 咨询二维码和网站挂件占位。当前二维码仅用于功能演示。
+          为 {business.name} 生成落地页、在线咨询、二维码和网站挂件占位。当前二维码仅用于功能演示。
         </p>
       </div>
 
@@ -66,9 +72,9 @@ export default async function DeploymentPage({ params }: PageProps) {
               <CardTitle>可分享链接</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
+              <LinkRow icon={Sparkles} label="客户落地页（主二维码）" href={lpPath} copyText={landingLink} />
+              <LinkRow icon={MessageCircle} label="在线咨询页" href={aiChatPath} copyText={aiChatLink} />
               <LinkRow icon={Store} label="公共商家主页" href={publicPath} copyText={publicLink} />
-              <LinkRow icon={MessageCircle} label="AI 客服咨询页" href={aiChatPath} copyText={aiChatLink} />
-              <LinkRow icon={Sparkles} label="落地页链接" href={lpPath} copyText={landingLink} />
             </CardContent>
           </Card>
 
@@ -113,7 +119,7 @@ export default async function DeploymentPage({ params }: PageProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  用于演示环境初始化 LUNA FIT 的 business、services 和 FAQs 数据。请先在 Supabase 执行 `supabase/schema.sql`。
+                  用于演示环境初始化 LUNA FIT 的 business、services、FAQs 和 landing_pages 数据。请先在 Supabase 执行 `supabase/schema.sql`。
                 </p>
                 <SeedDemoButton />
               </CardContent>
@@ -147,8 +153,8 @@ export default async function DeploymentPage({ params }: PageProps) {
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle>AI 咨询二维码</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">扫码进入演示 AI 客服页</p>
+                <CardTitle>主二维码</CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">扫码进入{mainQrLabel}</p>
               </div>
               <Badge tone="teal">
                 <QrCode className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
@@ -159,17 +165,17 @@ export default async function DeploymentPage({ params }: PageProps) {
           <CardContent>
             <div
               className="mx-auto aspect-square w-full max-w-[260px] overflow-hidden rounded-lg border border-border bg-white p-3 [&_svg]:h-full [&_svg]:w-full"
-              aria-label={`${business.name} AI 客服二维码`}
+              aria-label={`${business.name} ${mainQrLabel}二维码`}
               dangerouslySetInnerHTML={{ __html: qrSvg }}
             />
             <div className="mt-5 rounded-md bg-muted p-4 text-sm">
               <p className="font-medium">{business.name}</p>
-              <p className="mt-1 break-all text-muted-foreground">{aiChatLink}</p>
+              <p className="mt-1 break-all text-muted-foreground">{mainQrLink}</p>
               <p className="mt-2 text-xs text-muted-foreground">示例门店，仅用于功能演示</p>
             </div>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <DownloadQrButton svg={qrSvg} fileName={`${slug}-ai-chat-demo-qr.svg`} />
-              <CopyButton text={aiChatLink} label="复制咨询链接" />
+              <DownloadQrButton svg={qrSvg} fileName={`${slug}-landing-demo-qr.svg`} />
+              <CopyButton text={mainQrLink} label="复制二维码链接" />
             </div>
           </CardContent>
         </Card>

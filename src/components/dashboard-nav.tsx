@@ -9,6 +9,7 @@ import {
   Megaphone,
   Rocket,
   Settings,
+  Sparkles,
   UsersRound
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,11 @@ const navItems = [
     label: "营销",
     href: (slug: string) => dashboardRoute(slug, "marketing"),
     icon: Megaphone
+  },
+  {
+    label: "落地页",
+    href: (slug: string) => dashboardRoute(slug, "landing"),
+    icon: Sparkles
   },
   {
     label: "设置",

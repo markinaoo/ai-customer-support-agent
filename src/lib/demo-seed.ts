@@ -1,4 +1,5 @@
 import { lunaFitBusiness } from "@/lib/luna-fit-demo";
+import { getGeneratedLandingConfig } from "@/lib/landing-config";
 import { requireSupabaseAdmin } from "@/lib/supabase-server";
 
 export async function seedLunaFitDemo() {
@@ -67,10 +68,32 @@ export async function seedLunaFitDemo() {
     throw faqsError;
   }
 
+  const landing = getGeneratedLandingConfig(lunaFitBusiness);
+  const now = new Date().toISOString();
+  const { error: landingError } = await supabase.from("landing_pages").upsert(
+    {
+      business_id: business.id,
+      template_key: landing.templateKey,
+      theme_key: landing.themeKey,
+      hero_image: landing.heroImage,
+      draft_content: landing.content,
+      published_content: landing.content,
+      qr_target: "landing",
+      updated_at: now,
+      published_at: now
+    },
+    { onConflict: "business_id" }
+  );
+
+  if (landingError) {
+    throw landingError;
+  }
+
   return {
     businessId: business.id,
     slug: lunaFitBusiness.slug,
     services: lunaFitBusiness.services.length,
-    faqs: lunaFitBusiness.faqs.length
+    faqs: lunaFitBusiness.faqs.length,
+    landingPage: true
   };
 }

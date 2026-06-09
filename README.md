@@ -62,6 +62,7 @@ Real-demo routes:
 - `/dashboard/luna-fit`
 - `/dashboard/luna-fit/leads`
 - `/dashboard/luna-fit/marketing`
+- `/dashboard/luna-fit/landing`
 - `/dashboard/luna-fit/deployment`
 - `/lp/luna-fit`
 
@@ -190,8 +191,27 @@ Dashboard child routes are also available:
 - `/dashboard/[slug]/leads`
 - `/dashboard/[slug]/conversations`
 - `/dashboard/[slug]/marketing`
+- `/dashboard/[slug]/landing`
 - `/dashboard/[slug]/settings`
 - `/dashboard/[slug]/deployment`
+
+## Custom Client Landing Pages
+
+Every business can have an instant landing page at `/lp/[slug]`. The dashboard route `/dashboard/[slug]/landing` is an internal editor for choosing a template, theme, hero image, CTA copy, visible sections, featured services, and featured FAQs.
+
+Supabase persistence uses the `landing_pages` table from `supabase/schema.sql`. If no saved row exists, the page falls back to generated content from the business profile, services, and FAQs.
+
+Available MVP templates:
+
+- `fitness_offer`
+- `beauty_premium`
+- `local_service_direct`
+
+Available MVP style presets:
+
+- `clean_pro`
+- `warm_premium`
+- `bold_action`
 
 ## What Is Currently Demo / Mock
 
@@ -199,7 +219,7 @@ Dashboard child routes are also available:
 - LUNA FIT is a fictional demo client. With Supabase and DeepSeek env vars configured, it uses real database reads/writes and real AI API calls.
 - Without Supabase or DeepSeek env vars, LUNA FIT falls back to local demo data and local fallback replies so the UI can still be previewed.
 - Older mock leads and conversations remain for the beauty demo businesses.
-- QR code generation is demo-ready and uses the current public AI chat link.
+- QR code generation is demo-ready and now uses the client landing page link by default.
 - Website widget script is still a placeholder and does not load a real widget.
 - Settings forms do not persist changes.
 - Dashboard metrics are demo calculations.
@@ -209,7 +229,7 @@ Dashboard child routes are also available:
 
 ## What Needs To Be Connected Later
 
-- Supabase for real business profiles, services, FAQs, leads, conversations, and settings.
+- Supabase for real business profiles, services, FAQs, leads, conversations, landing pages, and settings.
 - DeepSeek or another LLM provider for real AI customer replies.
 - Real lead storage and follow-up status updates.
 - Real authentication for owner dashboards.

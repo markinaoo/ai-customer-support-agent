@@ -91,6 +91,20 @@ create table if not exists public.marketing_drafts (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.landing_pages (
+  id uuid primary key default gen_random_uuid(),
+  business_id uuid not null unique references public.businesses(id) on delete cascade,
+  template_key text not null default 'local_service_direct',
+  theme_key text not null default 'clean_pro',
+  hero_image text,
+  draft_content jsonb not null default '{}'::jsonb,
+  published_content jsonb not null default '{}'::jsonb,
+  qr_target text not null default 'landing' check (qr_target in ('landing', 'chat')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  published_at timestamptz
+);
+
 alter table public.businesses enable row level security;
 alter table public.services enable row level security;
 alter table public.faqs enable row level security;
@@ -98,6 +112,7 @@ alter table public.conversations enable row level security;
 alter table public.conversation_messages enable row level security;
 alter table public.leads enable row level security;
 alter table public.marketing_drafts enable row level security;
+alter table public.landing_pages enable row level security;
 
 drop policy if exists "Allow public read businesses" on public.businesses;
 drop policy if exists "Allow public read services" on public.services;

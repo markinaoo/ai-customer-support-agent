@@ -5,7 +5,7 @@ import { DashboardNav } from "@/components/dashboard-nav";
 import { DemoLabel } from "@/components/demo-label";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
-import { chatPath, publicBusinessPath } from "@/lib/routes";
+import { chatPath, landingPagePath, publicBusinessPath } from "@/lib/routes";
 
 export function DashboardShell({
   business,
@@ -44,6 +44,10 @@ export function DashboardShell({
               <div className="flex flex-wrap gap-2">
                 <Link href={publicBusinessPath(business.slug)} className={buttonClasses({ variant: "outline", size: "sm" })}>
                   公共主页
+                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link href={landingPagePath(business.slug)} className={buttonClasses({ variant: "outline", size: "sm" })}>
+                  落地页
                   <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link href={chatPath(business.slug)} className={buttonClasses({ variant: "primary", size: "sm" })}>
