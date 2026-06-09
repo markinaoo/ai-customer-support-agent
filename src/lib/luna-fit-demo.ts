@@ -12,11 +12,11 @@ export const lunaFitBusiness: BusinessProfile = {
   description:
     "LUNA FIT 是一家精品私教健身工作室，专注减脂、塑形、体态改善和一对一训练，适合上班族、健身新手和想要长期改善身体状态的人群。",
   brandTone: "专业、亲切、有行动力",
-  handoffMessage: "我已经记录你的训练目标和联系方式，稍后门店工作人员会联系你确认体验课或训练安排。",
+  handoffMessage: "我已经把你的训练目标和联系方式记录好了，预约不会自动确认，稍后门店工作人员会联系你核对具体档期。",
   heroImage: "/images/hero-luna-fit.jpg",
   coverImage: "/images/hero-luna-fit.jpg",
-  assistantLabel: "在线预约助理",
-  assistantIntro: "你好，我是 LUNA FIT 的在线预约助理。可以先帮你了解课程价格、是否适合新手、晚上档期和到店准备。",
+  assistantLabel: "预约咨询",
+  assistantIntro: "你好，这里是 LUNA FIT 预约咨询。你可以直接问价格、体验课、晚上档期，也可以先说说训练目标，我帮你判断从哪类课开始更合适。",
   landing: {
     eyebrow: "上海精品私教工作室",
     headline: "想开始训练，先做一次适合你的评估和体验课",
@@ -172,7 +172,7 @@ export const lunaFitBusiness: BusinessProfile = {
       id: "luna-faq-10",
       businessSlug: "luna-fit",
       question: "会不会强制办卡？",
-      answer: "当前资料里没有强制办卡信息。可以先预约体测评估或体验课，了解适合度后再由工作人员介绍后续训练方案。",
+      answer: "可以先做体测评估或体验课，不需要一上来决定长期课程。我这边没有看到强制办卡要求，后续训练方案会结合你的目标再介绍。",
       sortOrder: 10
     },
     {

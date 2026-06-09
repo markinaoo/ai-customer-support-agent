@@ -22,10 +22,10 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   const assistantIntro =
     business.assistantIntro ?? `你好，我是 ${business.name} 的在线咨询顾问。可以先帮你了解价格、预约、营业时间、地址和到店准备。`;
   const quickPrompts = [
-    business.slug === "luna-fit" ? "你们私教多少钱？" : `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
+    business.slug === "luna-fit" ? "体验课包含什么？" : `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
     business.slug === "luna-fit" ? "我没有基础可以吗？" : `${business.services[1]?.name ?? "热门项目"}多少钱？`,
-    business.slug === "luna-fit" ? "晚上可以预约吗？" : "可以指定老师吗？",
-    "门店地址在哪里？"
+    business.slug === "luna-fit" ? "会不会强制办卡？" : "可以指定老师吗？",
+    business.slug === "luna-fit" ? "我想明天晚上体验课" : "门店地址在哪里？"
   ];
   const [messages, setMessages] = useState<ChatMessage[]>([
     {

@@ -62,7 +62,7 @@ export async function generateBusinessChatReply(
         content: buildChatSystemPrompt(business)
       },
       ...messages.slice(-6)
-    ], { maxTokens: 180, timeoutMs: 4500 });
+    ], { maxTokens: 220, timeoutMs: 5000, temperature: 0.45 });
 
     return {
       reply: response,
@@ -130,7 +130,7 @@ channel, title, body, cta
         role: "user",
         content: prompt
       }
-    ], { maxTokens: 900, timeoutMs: 20000 });
+    ], { maxTokens: 900, timeoutMs: 20000, temperature: 0.35 });
 
     return {
       drafts: parseMarketingDrafts(content, business, service?.name ?? serviceName, campaignGoal),
@@ -151,7 +151,7 @@ channel, title, body, cta
 async function callDeepSeek(
   model: string,
   messages: DeepSeekMessage[],
-  options: { maxTokens: number; timeoutMs: number }
+  options: { maxTokens: number; timeoutMs: number; temperature?: number }
 ) {
   const baseUrl = (process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com").replace(/\/$/, "");
   const controller = new AbortController();
@@ -167,7 +167,7 @@ async function callDeepSeek(
     body: JSON.stringify({
       model,
       messages,
-      temperature: 0.2,
+      temperature: options.temperature ?? 0.35,
       max_tokens: options.maxTokens
     })
   }).finally(() => clearTimeout(timeout));
@@ -213,7 +213,8 @@ ${faqs}
 - 用简短、自然的中文回答。
 - 每次回复控制在 1-3 句，除非客户明确要求详细解释。
 - 优先匹配 FAQ 和服务价格回答，不要泛泛而谈。
-- 回答要像专业预约助理：先回答问题，再引导客户留下目标、联系方式和到店时间。
+- 回答要像耐心的门店预约顾问：先听懂顾客的顾虑，再给具体答案，最后只问一个自然的下一步问题。
+- 少用“收到”“工作人员会确认”这类模板句，不要每条都重复同一个结尾。
 - 面向顾客时不要主动强调“AI”。
 - 不要声称自己是真人、老板、教练本人或已经人工确认。
 - 不要编造价格、折扣、地址、营业时间、名额、承诺效果或保证。
@@ -229,6 +230,12 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
   }
 
   const text = message.toLowerCase();
+  const leadReply = createLeadAcknowledgementReply(message);
+
+  if (leadReply) {
+    return leadReply;
+  }
+
   const faqReply = findFaqReply(business, message);
 
   if (faqReply) {
@@ -236,15 +243,15 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
   }
 
   if (/你好|您好|在吗|有人吗|hi|hello/.test(text)) {
-    return "你好，这里是 LUNA FIT 在线咨询。你可以问课程价格、是否适合新手、晚上档期，或直接留下姓名和电话/微信，工作人员会联系确认。";
+    return "你好，这里是 LUNA FIT 预约咨询。你可以直接问价格、体验课、晚上档期，也可以先说说你的训练目标，我帮你判断从哪类课开始更合适。";
   }
 
   if (/地址|在哪|位置|怎么去/.test(text)) {
-    return `LUNA FIT 在${business.address}。你可以先告诉我想来的时间和训练目标，工作人员会确认是否有合适档期。`;
+    return `LUNA FIT 在${business.address}。如果你准备到店，可以发我大概时间和训练目标，我先帮你把需求记清楚。`;
   }
 
   if (/营业|几点|时间|开门|关门/.test(text)) {
-    return `营业时间是${business.openingHours}。晚上可以预约，但属于高峰时段，建议提前一天确认。`;
+    return `营业时间是${business.openingHours}。晚上可以约，不过晚间档比较集中，你最好提前一天把希望时间发过来确认。`;
   }
 
   if (/多少钱|价格|收费|私教/.test(text)) {
@@ -252,39 +259,39 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
   }
 
   if (/课程|项目|服务|有什么|做什么/.test(text)) {
-    return "LUNA FIT 目前有体测评估 ¥99/次、一对一私教体验课 ¥199/次、减脂/塑形私教课 ¥399/节、小团体训练 ¥99/次、月度训练计划 ¥599/月。";
+    return "目前可以先看这几类：体测评估 ¥99/次、一对一体验课 ¥199/次、减脂或塑形私教 ¥399/节，小团体训练是 ¥99/次。第一次来不一定要马上选长期课，先看你的目标和基础更稳。";
   }
 
   if (/体验课|体验/.test(text)) {
-    return "一对一私教体验课是 ¥199/次，适合第一次到店先了解训练方式和教练安排。留下姓名、电话或微信、希望时间后，工作人员会联系确认。";
+    return "一对一体验课是 ¥199/次，比较适合第一次来先感受教练风格、动作指导和训练强度。你是更想减脂、塑形，还是先看看自己适不适合练？";
   }
 
   if (/减脂|减肥|瘦/.test(text)) {
-    return "减脂私教课是 ¥399/节，会围绕减脂目标安排训练强度和节奏。具体是否适合你，工作人员会结合基础情况确认。";
+    return "如果目标是减脂，重点不是一上来练很猛，而是把力量训练、消耗和节奏安排好。减脂私教课是 ¥399/节，你可以先说下身高体重或目前运动基础，我帮你判断先体测还是先体验课。";
   }
 
   if (/塑形|体态|线条|臀|核心/.test(text)) {
-    return "塑形私教课是 ¥399/节，主要针对线条、臀腿、核心和体态改善。可以先说一下你的目标和希望到店时间。";
+    return "塑形课主要看线条、臀腿、核心和体态，价格是 ¥399/节。你如果有具体想改善的位置，比如肩颈、腰腹、臀腿，可以直接告诉我。";
   }
 
   if (/体测|评估/.test(text)) {
-    return "体测评估是 ¥99/次，主要看基础身体数据、体态和训练目标，适合第一次来之前先判断训练方向。";
+    return "体测评估是 ¥99/次，会先看基础身体数据、体态和训练目标。它适合还不确定该练什么的人，先把方向判断清楚。";
   }
 
   if (/准备|带什么|穿什么|第一次/.test(text)) {
-    return "第一次来穿运动服和运动鞋即可，建议提前10分钟到店做基础体测。";
+    return "第一次来不用准备复杂东西，穿运动服和运动鞋就行。建议提前10分钟到店，方便先做基础沟通和体测。";
   }
 
   if (/适合哪些人|适合什么人|上班族/.test(text)) {
-    return "主要适合想减脂、塑形、改善体态、提升体能的上班族和健身新手。";
+    return "比较适合上班族、健身新手，以及想减脂、塑形、改善体态的人。你如果平时久坐或很久没运动，也可以从低强度开始。";
   }
 
   if (/优惠|折扣|活动|便宜/.test(text)) {
-    return "目前资料里没有可确认的折扣信息。课程价格可以先参考页面展示，具体活动工作人员会联系确认。";
+    return "我这边不能乱报没有确认过的优惠。现在能确定的是体验课 ¥199/次、体测 ¥99/次，具体活动要让门店确认后再告诉你。";
   }
 
   if (/电话|手机|联系|微信|wechat|wx/.test(text)) {
-    return `可以电话 ${business.phone} 或微信 ${business.wechat} 联系。你也可以直接留下姓名、电话或微信和希望时间，工作人员会确认。`;
+    return `可以电话 ${business.phone} 或微信 ${business.wechat} 联系。你也可以直接把姓名、电话或微信、希望到店时间发在这里，我先帮你记录。`;
   }
 
   if (/没有基础|新手|零基础|基础差/.test(text)) {
@@ -293,10 +300,6 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
 
   if (/晚上|预约|体验|明天|今天|周末/.test(text)) {
     return createLocalFallbackReply(business, message);
-  }
-
-  if (/(1[3-9]\d[-\s]?\d{4}[-\s]?\d{4})|微信|wechat|wx|我叫|我是/.test(text)) {
-    return business.handoffMessage;
   }
 
   return "";
@@ -310,18 +313,18 @@ function createLocalFallbackReply(business: BusinessProfile, message: string) {
   const text = message.toLowerCase();
 
   if (text.includes("多少钱") || text.includes("价格") || text.includes("私教")) {
-    return "LUNA FIT 的一对一私教体验课是 ¥199/次，减脂私教课和塑形私教课都是 ¥399/节。具体适合哪种课，工作人员会结合你的目标确认。";
+    return "价格可以先这样看：体测评估 ¥99/次，一对一体验课 ¥199/次，正式的减脂或塑形私教课是 ¥399/节。第一次不建议盲目买长期课，你可以先说目标，我帮你看更适合体测还是体验课。";
   }
 
   if (text.includes("没有基础") || text.includes("新手") || text.includes("基础")) {
-    return "适合没有运动基础的人。教练会根据你的身体情况和目标安排训练强度，第一次来建议先做体测评估。";
+    return "可以，零基础反而更适合先把动作习惯和训练强度控制好，不会一上来就按高强度练。你更想减脂、塑形，还是先恢复运动习惯？";
   }
 
   if (text.includes("晚上") || text.includes("预约")) {
-    return "可以预约晚上，门店营业时间是周一至周日 09:00-22:00。晚上是高峰，建议提前一天预约。你可以留下姓名、电话或微信、想体验的服务和希望时间，工作人员会联系确认。";
+    return "晚上可以约，门店营业到 22:00，不过晚间档比较抢手。你把姓名、电话或微信、想约哪天晚上发我，我先帮你记录，最终档期由门店确认。";
   }
 
-  return "收到。LUNA FIT 主要提供体测评估、一对一私教体验课、减脂私教课、塑形私教课、小团体训练和月度训练计划。你可以告诉我目标、预算和希望到店时间，我先帮你记录，工作人员会确认。";
+  return "我明白。你可以先告诉我两个信息：想解决什么问题（减脂、塑形、体态或体能）和大概什么时候方便到店，我就能更准确地帮你对课程。";
 }
 
 function findFaqReply(business: BusinessProfile, message: string) {
@@ -341,7 +344,7 @@ function findFaqReply(business: BusinessProfile, message: string) {
     return "";
   }
 
-  return `${matchedFaq.answer}${shouldAskForContact(message) ? "" : "如果你想预约，可以留下姓名、电话或微信、希望到店时间，工作人员会联系确认。"}`;
+  return formatFaqReply(matchedFaq.answer, message);
 }
 
 function normalizeChineseText(value: string) {
@@ -360,7 +363,119 @@ function getFaqKeywords(value: string) {
 }
 
 function shouldAskForContact(message: string) {
-  return /预约|体验|报名|联系|电话|微信|我叫|我是|1[3-9]\d/.test(message);
+  return /预约|报名|联系|电话|微信|我叫|我是|想约|到店|试课|体验一下|1[3-9]\d/.test(message);
+}
+
+function formatFaqReply(answer: string, message: string) {
+  const followUp = createContextualFollowUp(message, answer);
+  return followUp ? `${answer}${followUp}` : answer;
+}
+
+function createContextualFollowUp(message: string, answer: string) {
+  if (shouldAskForContact(message)) {
+    return "";
+  }
+
+  if (/体验课|体验/.test(message)) {
+    return "你如果想先试一节，可以发我姓名和大概时间，我先帮你记录。";
+  }
+
+  if (/没有基础|新手|零基础|基础/.test(message)) {
+    return "你现在更想减脂、塑形，还是先把运动习惯建立起来？";
+  }
+
+  if (/多少钱|价格|收费|私教/.test(message)) {
+    return "如果你不确定选哪种课，可以先说目标和预算，我帮你对一下。";
+  }
+
+  if (/晚上|时间|预约|档期/.test(message)) {
+    return "你大概想约哪天晚上？";
+  }
+
+  if (/效果|多久/.test(message)) {
+    return "你可以先说现在的目标和运动基础，我帮你判断从哪一步开始更合适。";
+  }
+
+  if (/女教练|指定教练/.test(message)) {
+    return "你可以把偏好和可到店时间发我，方便门店确认排班。";
+  }
+
+  if (/强制|办卡|单次/.test(message)) {
+    return "你可以先把它当成一次了解，不急着决定长期方案。";
+  }
+
+  if (answer.includes("当前资料里没有明确")) {
+    return "这类信息我不乱说，门店确认预约时会一起说明。";
+  }
+
+  return "";
+}
+
+function createLeadAcknowledgementReply(message: string) {
+  const info = extractLunaLeadInfo(message);
+  const hasDirectBookingIntent = /我想|想约|想预约|报名|到店|试课|体验一下|来一节|约一节/.test(message);
+  const hasContact = Boolean(info.phone || info.wechat || (info.name && hasDirectBookingIntent));
+
+  if (!hasContact && !(hasDirectBookingIntent && info.time)) {
+    return "";
+  }
+
+  const knownParts = [
+    info.service ? `项目：${info.service}` : "",
+    info.goal ? `目标：${info.goal}` : "",
+    info.time ? `时间：${info.time}` : "",
+    info.phone ? `电话：${info.phone}` : "",
+    info.wechat ? `微信：${info.wechat}` : ""
+  ].filter(Boolean);
+  const missing = [
+    info.name ? "" : "姓名",
+    info.phone || info.wechat ? "" : "电话或微信",
+    info.service || info.goal ? "" : "想体验的项目",
+    info.time ? "" : "希望到店时间"
+  ].filter(Boolean);
+  const greeting = info.name ? `好的，${info.name}。` : "好的，我先帮你记一下。";
+  const summary = knownParts.length ? `我这边看到${knownParts.join("，")}。` : "";
+  const nextStep = missing.length
+    ? `还差${missing.slice(0, 2).join("、")}，你方便补一下吗？`
+    : "预约不会自动确认，稍后门店工作人员会联系你核对具体档期。";
+
+  return `${greeting}${summary}${nextStep}`;
+}
+
+function extractLunaLeadInfo(message: string) {
+  const phone = message.match(/(?:\+?86[-\s]?)?(1[3-9]\d[-\s]?\d{4}[-\s]?\d{4})/)?.[1]?.replace(/\D/g, "") ?? "";
+  const wechat = message.match(/(?:微信|wechat|WeChat|wx|WX)[:：号是叫\s]*([A-Za-z0-9_-]{4,32})/)?.[1] ?? "";
+  const rawName = message.match(/(?:我叫|我是|姓名[:：\s]*)([\u4e00-\u9fa5A-Za-z]{1,12})/)?.[1] ?? "";
+  const name = /新手|小白|零基础|学生|上班族|女生|男生|会员/.test(rawName) ? "" : rawName;
+  const time = message.match(/((?:今天|明天|后天|周[一二三四五六日天末]|星期[一二三四五六日天]|周末)(?:上午|中午|下午|晚上|晚间)?(?:[0-2]?\d点半?|[0-2]?\d[:：][0-5]\d)?|(?:上午|中午|下午|晚上|晚间)(?:[0-2]?\d点半?|[0-2]?\d[:：][0-5]\d)?|[0-2]?\d点半?|[0-2]?\d[:：][0-5]\d)/)?.[1] ?? "";
+  const service = inferLunaService(message);
+  const goal = inferLunaGoal(message);
+
+  return {
+    name,
+    phone,
+    wechat,
+    service,
+    goal,
+    time
+  };
+}
+
+function inferLunaService(message: string) {
+  if (/体验/.test(message)) return "一对一私教体验课";
+  if (/体测|评估/.test(message)) return "体测评估";
+  if (/减脂|减肥|瘦/.test(message)) return "减脂私教课";
+  if (/塑形|体态|线条|臀|核心/.test(message)) return "塑形私教课";
+  if (/小团体|团课/.test(message)) return "小团体训练";
+  return "";
+}
+
+function inferLunaGoal(message: string) {
+  if (/减脂|减肥|瘦/.test(message)) return "减脂";
+  if (/塑形|线条|臀|核心/.test(message)) return "塑形";
+  if (/体态|肩颈|驼背|久坐/.test(message)) return "体态改善";
+  if (/体能|恢复|运动习惯/.test(message)) return "提升体能";
+  return "";
 }
 
 function parseMarketingDrafts(
