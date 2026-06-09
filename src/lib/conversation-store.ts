@@ -232,8 +232,13 @@ function extractWechat(text: string) {
 }
 
 function extractName(text: string) {
-  const match = text.match(/(?:我叫|我是|姓名[:：\s]*)([\u4e00-\u9fa5A-Za-z]{1,12})/);
-  return match?.[1] ?? "";
+  const rawName = text.match(/(?:我叫|我是|姓名[:：\s]*)([\u4e00-\u9fa5A-Za-z]{1,12})/)?.[1] ?? "";
+
+  if (/新手|小白|零基础|学生|上班族|女生|男生|会员|顾客|客户|第一次|健身/.test(rawName)) {
+    return "";
+  }
+
+  return rawName;
 }
 
 function extractServiceNeeded(business: BusinessProfile, text: string) {
