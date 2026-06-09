@@ -98,6 +98,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
         sessionId.current = data.sessionId;
       }
       const reply = data.reply ?? "已收到，我会先记录你的需求。";
+      await waitForHumanReplyDelay(reply);
       setLeadCaptured(Boolean(data.leadCaptured));
       setMessages((current) => [
         ...current,
@@ -252,6 +253,14 @@ export function AIChat({ business }: { business: BusinessProfile }) {
       </div>
     </div>
   );
+}
+
+function waitForHumanReplyDelay(reply: string) {
+  const baseDelay = 650;
+  const lengthDelay = Math.min(reply.length * 12, 1200);
+  const randomDelay = Math.floor(Math.random() * 420);
+
+  return new Promise((resolve) => window.setTimeout(resolve, baseDelay + lengthDelay + randomDelay));
 }
 
 function createSessionId(slug: string) {
