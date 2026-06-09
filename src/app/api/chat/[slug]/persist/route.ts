@@ -2,17 +2,20 @@ import { NextResponse } from "next/server";
 import { getBusinessProfile, getLocalBusinessProfile } from "@/lib/business-data";
 import {
   extractLeadCandidate,
+  getOrCreateConversation,
+  saveConversationMessage,
+  saveLead,
   type StoredMessage
 } from "@/lib/conversation-store";
-import { generateBusinessChatReply } from "@/lib/deepseek";
 import { isSupabaseConfigured } from "@/lib/supabase-server";
 
 type RouteContext = {
   params: Promise<{ slug: string }>;
 };
 
-type ChatRequestBody = {
+type PersistRequestBody = {
   message?: unknown;
+  reply?: unknown;
   sessionId?: unknown;
   history?: unknown;
 };
@@ -26,49 +29,43 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   if (slug === "luna-fit" && !isSupabaseConfigured()) {
-    return NextResponse.json(
-      { error: "Supabase is not configured for the real LUNA FIT demo." },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as ChatRequestBody;
+  const body = (await request.json().catch(() => ({}))) as PersistRequestBody;
   const message = typeof body.message === "string" ? body.message.trim() : "";
-  const sessionId = typeof body.sessionId === "string" && body.sessionId.trim() ? body.sessionId.trim() : crypto.randomUUID();
+  const reply = typeof body.reply === "string" ? body.reply.trim() : "";
+  const sessionId = typeof body.sessionId === "string" && body.sessionId.trim() ? body.sessionId.trim() : "";
 
-  if (!message) {
-    return NextResponse.json({ error: "Message is required" }, { status: 400 });
+  if (!message || !reply || !sessionId) {
+    return NextResponse.json({ error: "message, reply, and sessionId are required" }, { status: 400 });
   }
-
-  const requestHistory = parseRequestHistory(body.history);
-  const chatMessages = [...requestHistory, { role: "user" as const, content: message }].slice(-8);
-  let reply: string;
-  let source: string;
 
   try {
-    const generated = await generateBusinessChatReply(business, chatMessages);
-    reply = generated.reply;
-    source = generated.source;
+    const conversation = await getOrCreateConversation(slug, sessionId);
+    await saveConversationMessage(conversation, "customer", message);
+    await saveConversationMessage(conversation, "ai", reply);
+
+    const customerMessages = [...parseRequestHistory(body.history), { role: "user" as const, content: message }]
+      .filter((item) => item.role === "user")
+      .map((item) => item.content);
+    const leadCandidate = extractLeadCandidate(business, customerMessages, reply);
+    const savedLead = leadCandidate ? await saveLead(slug, conversation?.id ?? null, leadCandidate) : null;
+
+    return NextResponse.json({
+      saved: true,
+      leadCaptured: Boolean(savedLead),
+      demoLabel: "示例门店，仅用于功能演示"
+    });
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "AI generation failed",
-        demoLabel: "示例门店，仅用于功能演示"
+        saved: false,
+        error: error instanceof Error ? error.message : "Failed to persist chat"
       },
-      { status: 503 }
+      { status: 500 }
     );
   }
-
-  const customerMessages = chatMessages.filter((item) => item.role === "user").map((item) => item.content);
-  const leadCandidate = extractLeadCandidate(business, customerMessages, reply);
-
-  return NextResponse.json({
-    reply,
-    source,
-    sessionId,
-    leadCaptured: Boolean(leadCandidate),
-    demoLabel: "示例门店，仅用于功能演示"
-  });
 }
 
 function parseRequestHistory(history: unknown): StoredMessage[] {

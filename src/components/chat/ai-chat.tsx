@@ -73,6 +73,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     setMessages((current) => [...current, userMessage]);
     setInput("");
     setLoading(true);
+    const outgoingHistory = [...messages, userMessage].slice(-10);
 
     try {
       const response = await fetch(`/api/chat/${business.slug}`, {
@@ -83,7 +84,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
         body: JSON.stringify({
           message: trimmed,
           sessionId: getSessionId(),
-          history: [...messages, userMessage].slice(-10)
+          history: outgoingHistory
         })
       });
 
@@ -96,15 +97,17 @@ export function AIChat({ business }: { business: BusinessProfile }) {
       if (data.sessionId) {
         sessionId.current = data.sessionId;
       }
+      const reply = data.reply ?? "已收到，我会先记录你的需求。";
       setLeadCaptured(Boolean(data.leadCaptured));
       setMessages((current) => [
         ...current,
         {
           id: nextMessageId("ai"),
           role: "ai",
-          content: data.reply ?? "已收到，我会先记录你的需求。"
+          content: reply
         }
       ]);
+      persistChatTurn(trimmed, reply, sessionId.current, outgoingHistory);
     } catch {
       setMessages((current) => [
         ...current,
@@ -122,6 +125,26 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void sendMessage(input);
+  }
+
+  function persistChatTurn(message: string, reply: string, currentSessionId: string, history: ChatMessage[]) {
+    const payload = JSON.stringify({
+      message,
+      reply,
+      sessionId: currentSessionId,
+      history
+    });
+
+    void fetch(`/api/chat/${business.slug}/persist`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: payload,
+      keepalive: true
+    }).catch(() => {
+      // The visible reply should not be blocked by background demo persistence.
+    });
   }
 
   return (

@@ -61,8 +61,8 @@ export async function generateBusinessChatReply(
         role: "system",
         content: buildChatSystemPrompt(business)
       },
-      ...messages.slice(-10)
-    ], { maxTokens: 360, timeoutMs: 8000 });
+      ...messages.slice(-6)
+    ], { maxTokens: 180, timeoutMs: 4500 });
 
     return {
       reply: response,
@@ -211,6 +211,7 @@ ${faqs}
 
 规则：
 - 用简短、自然的中文回答。
+- 每次回复控制在 1-3 句，除非客户明确要求详细解释。
 - 面向顾客时不要主动强调“AI”。
 - 不要声称自己是真人、老板、教练本人或已经人工确认。
 - 不要编造价格、折扣、地址、营业时间、名额、承诺效果或保证。
@@ -227,6 +228,10 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
 
   const text = message.toLowerCase();
 
+  if (/你好|您好|在吗|有人吗|hi|hello/.test(text)) {
+    return "你好，这里是 LUNA FIT 在线咨询。你可以问课程价格、是否适合新手、晚上档期，或直接留下姓名和电话/微信，工作人员会联系确认。";
+  }
+
   if (/地址|在哪|位置|怎么去/.test(text)) {
     return `LUNA FIT 在${business.address}。你可以先告诉我想来的时间和训练目标，工作人员会确认是否有合适档期。`;
   }
@@ -237,6 +242,42 @@ function createFastBusinessReply(business: BusinessProfile, message: string) {
 
   if (/多少钱|价格|收费|私教/.test(text)) {
     return createLocalFallbackReply(business, message);
+  }
+
+  if (/课程|项目|服务|有什么|做什么/.test(text)) {
+    return "LUNA FIT 目前有体测评估 ¥99/次、一对一私教体验课 ¥199/次、减脂/塑形私教课 ¥399/节、小团体训练 ¥99/次、月度训练计划 ¥599/月。";
+  }
+
+  if (/体验课|体验/.test(text)) {
+    return "一对一私教体验课是 ¥199/次，适合第一次到店先了解训练方式和教练安排。留下姓名、电话或微信、希望时间后，工作人员会联系确认。";
+  }
+
+  if (/减脂|减肥|瘦/.test(text)) {
+    return "减脂私教课是 ¥399/节，会围绕减脂目标安排训练强度和节奏。具体是否适合你，工作人员会结合基础情况确认。";
+  }
+
+  if (/塑形|体态|线条|臀|核心/.test(text)) {
+    return "塑形私教课是 ¥399/节，主要针对线条、臀腿、核心和体态改善。可以先说一下你的目标和希望到店时间。";
+  }
+
+  if (/体测|评估/.test(text)) {
+    return "体测评估是 ¥99/次，主要看基础身体数据、体态和训练目标，适合第一次来之前先判断训练方向。";
+  }
+
+  if (/准备|带什么|穿什么|第一次/.test(text)) {
+    return "第一次来穿运动服和运动鞋即可，建议提前10分钟到店做基础体测。";
+  }
+
+  if (/适合哪些人|适合什么人|上班族/.test(text)) {
+    return "主要适合想减脂、塑形、改善体态、提升体能的上班族和健身新手。";
+  }
+
+  if (/优惠|折扣|活动|便宜/.test(text)) {
+    return "目前资料里没有可确认的折扣信息。课程价格可以先参考页面展示，具体活动工作人员会联系确认。";
+  }
+
+  if (/电话|手机|联系|微信|wechat|wx/.test(text)) {
+    return `可以电话 ${business.phone} 或微信 ${business.wechat} 联系。你也可以直接留下姓名、电话或微信和希望时间，工作人员会确认。`;
   }
 
   if (/没有基础|新手|零基础|基础差/.test(text)) {
