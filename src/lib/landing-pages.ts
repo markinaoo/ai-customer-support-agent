@@ -24,6 +24,8 @@ type LandingPageRow = {
   published_at: string | null;
 };
 
+const LANDING_READ_TIMEOUT_MS = 2500;
+
 export type LandingPageInput = {
   templateKey: LandingTemplateKey;
   themeKey: LandingThemeKey;
@@ -34,7 +36,7 @@ export type LandingPageInput = {
 
 export async function getPublicLandingConfig(business: BusinessProfile): Promise<LandingPageConfig> {
   const generated = getGeneratedLandingConfig(business);
-  const row = await getLandingRow(business.slug);
+  const row = await getLandingRowWithTimeout(business.slug);
 
   if (!row || !hasObjectContent(row.published_content)) {
     return generated;
@@ -54,7 +56,7 @@ export async function getPublicLandingConfig(business: BusinessProfile): Promise
 
 export async function getEditorLandingConfig(business: BusinessProfile): Promise<LandingPageConfig> {
   const generated = getGeneratedLandingConfig(business);
-  const row = await getLandingRow(business.slug);
+  const row = await getLandingRowWithTimeout(business.slug);
 
   if (!row) {
     return generated;
@@ -185,6 +187,24 @@ async function getLandingRow(slug: string) {
   }
 
   return data;
+}
+
+async function getLandingRowWithTimeout(slug: string) {
+  return withTimeout(getLandingRow(slug), LANDING_READ_TIMEOUT_MS, null);
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => resolve(fallback), timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  });
 }
 
 function hasObjectContent(value: unknown) {
