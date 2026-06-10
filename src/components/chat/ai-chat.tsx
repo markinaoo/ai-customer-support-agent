@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MessageCircle, Send, UserRound } from "lucide-react";
 import { DemoLabel } from "@/components/demo-label";
 import type { BusinessProfile } from "@/lib/businesses";
@@ -18,6 +18,7 @@ type ChatMessage = {
 export function AIChat({ business }: { business: BusinessProfile }) {
   const idCounter = useRef(0);
   const sessionId = useRef("");
+  const idleTimer = useRef<number | null>(null);
   const assistantLabel = business.assistantLabel ?? "在线咨询顾问";
   const assistantIntro =
     business.assistantIntro ?? `你好，我是 ${business.name} 的在线咨询顾问。可以先帮你了解价格、预约、营业时间、地址和到店准备。`;
@@ -37,6 +38,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
+  const [idleNudgeSent, setIdleNudgeSent] = useState(false);
 
   const leadSignals = useMemo(() => {
     const joined = messages.map((message) => message.content).join(" ");
@@ -52,6 +54,40 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     return `${prefix}-${idCounter.current}`;
   }
 
+  useEffect(() => {
+    if (idleTimer.current) {
+      window.clearTimeout(idleTimer.current);
+      idleTimer.current = null;
+    }
+
+    const hasCustomerMessage = messages.some((message) => message.role === "user");
+    const lastMessage = messages.at(-1);
+
+    if (!hasCustomerMessage || !lastMessage || lastMessage.role !== "ai" || loading || leadCaptured || idleNudgeSent) {
+      return;
+    }
+
+    idleTimer.current = window.setTimeout(() => {
+      setMessages((current) => [
+        ...current,
+        {
+          id: `ai-nudge-${Date.now()}`,
+          role: "ai",
+          content: createIdleSalesNudge(business, current)
+        }
+      ]);
+      setIdleNudgeSent(true);
+      idleTimer.current = null;
+    }, 18000);
+
+    return () => {
+      if (idleTimer.current) {
+        window.clearTimeout(idleTimer.current);
+        idleTimer.current = null;
+      }
+    };
+  }, [business, idleNudgeSent, leadCaptured, loading, messages]);
+
   function getSessionId() {
     if (!sessionId.current) {
       sessionId.current = createSessionId(business.slug);
@@ -63,6 +99,11 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
+
+    if (idleTimer.current) {
+      window.clearTimeout(idleTimer.current);
+      idleTimer.current = null;
+    }
 
     const userMessage: ChatMessage = {
       id: nextMessageId("user"),
@@ -262,6 +303,35 @@ function waitForHumanReplyDelay(message: string) {
   const targetDelay = baseDelay + thinkingDelay;
 
   return new Promise((resolve) => window.setTimeout(resolve, targetDelay));
+}
+
+function createIdleSalesNudge(business: BusinessProfile, messages: ChatMessage[]) {
+  const joined = messages.map((message) => message.content).join(" ");
+
+  if (business.slug === "luna-fit") {
+    if (/价格|多少钱|贵|预算|私教/.test(joined)) {
+      return "如果你现在还在比较价格，我建议先别急着定长期课。可以先从 ¥99 体测或 ¥199 体验课开始，看看教练风格和训练强度合不合适，你更方便工作日晚上还是周末？";
+    }
+
+    if (/没有基础|新手|怕|练不动|担心/.test(joined)) {
+      return "你这种情况可以先把强度放低一点，不用一上来练很猛。第一次更适合先做体测或体验课，你主要想减脂、塑形，还是先恢复运动习惯？";
+    }
+
+    return "我先给你一个稳一点的建议：如果还没确定选哪种课，先从体测或体验课开始会更好判断。你方便说下目标和大概想来的时间吗？";
+  }
+
+  if (business.slug === "bella-hair") {
+    if (/染|颜色|显白|发色|价格|多少钱/.test(joined)) {
+      return "如果你还没定颜色，可以先按发长、预算和想要的风格来判断，别急着直接定最复杂的方案。你现在发长大概到哪里，想自然通勤一点还是明显换风格一点？";
+    }
+
+    return "我先给你一个稳一点的建议：如果不确定做哪个项目，可以先把发长、发质、预算和想来的时间告诉我，老师会更容易判断方案。你这次主要想剪、染，还是护理？";
+  }
+
+  const firstService = business.services[0];
+  const serviceText = firstService ? `${firstService.name} ${firstService.price}` : "一个基础项目";
+
+  return `如果你还没想好，可以先从${serviceText}了解起，不用马上定复杂方案。你方便说下主要需求和大概想来的时间吗？`;
 }
 
 function createSessionId(slug: string) {
