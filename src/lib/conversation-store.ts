@@ -1,6 +1,7 @@
 import type { BusinessProfile } from "@/lib/businesses";
 import type { GeneratedMarketingDraft } from "@/lib/deepseek";
 import { getBusinessIdBySlug } from "@/lib/business-data";
+import { extractCustomerName, extractPhoneNumber, extractWechatId } from "@/lib/customer-info";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 
 export type StoredMessage = {
@@ -29,6 +30,18 @@ export type LeadCandidate = {
   customerMessage: string;
   aiSummary: string;
 };
+
+export function getCustomerMessagesForLead(messages: StoredMessage[]) {
+  return messages
+    .map((message, index) => {
+      if (message.role !== "user") {
+        return "";
+      }
+
+      return inferContactLabelFromPreviousAssistant(messages[index - 1]?.content ?? "", message.content);
+    })
+    .filter(Boolean);
+}
 
 export async function getOrCreateConversation(slug: string, sessionId: string) {
   const supabase = getSupabaseAdmin();
@@ -123,9 +136,9 @@ export function extractLeadCandidate(
 ): LeadCandidate | null {
   const combined = customerMessages.join("\n");
   const latest = customerMessages.at(-1) ?? combined;
-  const phone = normalizePhone(combined.match(/(?:\+?86[-\s]?)?(1[3-9]\d[-\s]?\d{4}[-\s]?\d{4})/)?.[1] ?? "");
-  const wechat = extractWechat(combined);
-  const name = extractName(combined);
+  const phone = extractPhoneNumber(combined);
+  const wechat = extractWechatId(combined);
+  const name = extractCustomerName(combined);
   const serviceNeeded = extractServiceNeeded(business, combined);
   const preferredTime = extractPreferredTime(combined);
   const hasContact = Boolean(phone || wechat || name);
@@ -217,30 +230,6 @@ export async function saveMarketingDrafts(slug: string, drafts: GeneratedMarketi
   return data ?? [];
 }
 
-function normalizePhone(phone: string) {
-  return phone.replace(/\D/g, "");
-}
-
-function extractWechat(text: string) {
-  const explicit = text.match(/(?:微信|wechat|WeChat|wx|WX)[:：号是叫\s]*([A-Za-z0-9_-]{4,32})/);
-
-  if (explicit?.[1]) {
-    return explicit[1];
-  }
-
-  return "";
-}
-
-function extractName(text: string) {
-  const rawName = text.match(/(?:我叫|我是|姓名[:：\s]*)([\u4e00-\u9fa5A-Za-z]{1,12})/)?.[1] ?? "";
-
-  if (/新手|小白|零基础|学生|上班族|女生|男生|会员|顾客|客户|第一次|健身/.test(rawName)) {
-    return "";
-  }
-
-  return rawName;
-}
-
 function extractServiceNeeded(business: BusinessProfile, text: string) {
   const service = business.services.find((item) => text.includes(item.name));
 
@@ -255,6 +244,29 @@ function extractServiceNeeded(business: BusinessProfile, text: string) {
   if (/小团体/.test(text)) return "小团体训练";
 
   return "";
+}
+
+function inferContactLabelFromPreviousAssistant(previousAssistant: string, customerMessage: string) {
+  const trimmed = customerMessage.trim();
+  const compact = trimmed.replace(/\s/g, "");
+
+  if (!trimmed || extractCustomerName(trimmed) || extractPhoneNumber(trimmed) || extractWechatId(trimmed)) {
+    return trimmed;
+  }
+
+  if (/姓名|名字|称呼|怎么叫|怎么称呼/.test(previousAssistant) && /^[\u4e00-\u9fa5A-Za-z]{1,12}$/.test(compact)) {
+    return `名字：${compact}`;
+  }
+
+  if (/电话|手机|手机号/.test(previousAssistant) && /^(?:\+?86)?1[3-9]\d{9}$/.test(compact)) {
+    return `电话：${compact}`;
+  }
+
+  if (/微信|微信号|vx/i.test(previousAssistant) && /^[A-Za-z0-9_-]{4,32}$/.test(compact)) {
+    return `微信：${compact}`;
+  }
+
+  return trimmed;
 }
 
 function extractPreferredTime(text: string) {

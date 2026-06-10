@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getBusinessProfile, getLocalBusinessProfile } from "@/lib/business-data";
 import {
   extractLeadCandidate,
+  getCustomerMessagesForLead,
   getOrCreateConversation,
   saveConversationMessage,
   saveLead,
@@ -46,9 +47,8 @@ export async function POST(request: Request, context: RouteContext) {
     await saveConversationMessage(conversation, "customer", message);
     await saveConversationMessage(conversation, "ai", reply);
 
-    const customerMessages = [...parseRequestHistory(body.history), { role: "user" as const, content: message }]
-      .filter((item) => item.role === "user")
-      .map((item) => item.content);
+    const conversationMessages = [...parseRequestHistory(body.history), { role: "user" as const, content: message }];
+    const customerMessages = getCustomerMessagesForLead(conversationMessages);
     const leadCandidate = extractLeadCandidate(business, customerMessages, reply);
     const savedLead = leadCandidate ? await saveLead(slug, conversation?.id ?? null, leadCandidate) : null;
 

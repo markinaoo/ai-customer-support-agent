@@ -1,4 +1,5 @@
 import type { BusinessProfile } from "@/lib/businesses";
+import { extractCustomerName, extractPhoneNumber, extractWechatId } from "@/lib/customer-info";
 
 type ChatInputMessage = {
   role: "user" | "assistant";
@@ -38,7 +39,8 @@ export async function generateBusinessChatReply(
   messages: ChatInputMessage[]
 ) {
   const latestMessage = messages.at(-1)?.content ?? "";
-  const immediateReply = createImmediateBusinessReply(business, latestMessage);
+  const contactAwareLatestMessage = withInferredContactLabel(messages, latestMessage);
+  const immediateReply = createImmediateBusinessReply(business, contactAwareLatestMessage);
 
   if (immediateReply) {
     return {
@@ -60,8 +62,8 @@ export async function generateBusinessChatReply(
         role: "system",
         content: buildChatSystemPrompt(business)
       },
-      ...messages.slice(-6)
-    ], { maxTokens: 320, timeoutMs: 8500, temperature: 0.6 });
+      ...messages.slice(-14)
+    ], { maxTokens: 420, timeoutMs: 9500, temperature: 0.55 });
 
     return {
       reply: sanitizeChatReply(response, business, latestMessage),
@@ -73,6 +75,31 @@ export async function generateBusinessChatReply(
       source: "fallback-deepseek-error"
     };
   }
+}
+
+function withInferredContactLabel(messages: ChatInputMessage[], latestMessage: string) {
+  const trimmed = latestMessage.trim();
+
+  if (!trimmed || extractCustomerName(trimmed) || extractPhoneNumber(trimmed) || extractWechatId(trimmed)) {
+    return trimmed;
+  }
+
+  const previousAssistant = [...messages].reverse().find((message) => message.role === "assistant")?.content ?? "";
+  const compact = trimmed.replace(/\s/g, "");
+
+  if (/姓名|名字|称呼|怎么叫|怎么称呼/.test(previousAssistant) && /^[\u4e00-\u9fa5A-Za-z]{1,12}$/.test(compact)) {
+    return `名字：${compact}`;
+  }
+
+  if (/电话|手机|手机号/.test(previousAssistant) && /^(?:\+?86)?1[3-9]\d{9}$/.test(compact)) {
+    return `电话：${compact}`;
+  }
+
+  if (/微信|微信号|vx/i.test(previousAssistant) && /^[A-Za-z0-9_-]{4,32}$/.test(compact)) {
+    return `微信：${compact}`;
+  }
+
+  return trimmed;
 }
 
 export async function generateMarketingDrafts(
@@ -248,6 +275,9 @@ ${industryGuide}
 - 如果顾客含糊、犹豫、嫌贵或没有继续推进，要先共情，再推荐一个风险更低的下一步，例如体测、体验课、先到店评估或先发需求。
 - 如果顾客只是了解信息，不要急着要联系方式；先回答清楚，再轻轻引导。
 - 如果顾客已经表达预约意向，再收集姓名、电话或微信、想体验的服务、希望到店时间。
+- 顾客可能只补一句“名字叫小王”“手机号是...”“微信号是...”，要结合上文理解为在补联系方式，不要当成新问题。
+- “姓名”“名字”“我叫”“我是”“称呼”都表示顾客姓名；“电话”“手机”“手机号”都表示电话；“微信”“微信号”“vx”都表示微信。
+- 如果顾客前面已经给过姓名、电话/微信、项目或时间，不要重复索要同一项，只补缺失项。
 - 如果顾客留下了联系方式，不要继续像 FAQ 一样回答，要确认已记录哪些信息，并说明最终档期由门店确认。
 - 少用“收到”“工作人员会确认”这类模板句，不要每条都重复同一个结尾。
 - 面向顾客时不要主动强调“AI”。
@@ -502,7 +532,7 @@ function getFaqKeywords(value: string) {
 }
 
 function shouldAskForContact(message: string) {
-  return /预约|报名|联系|电话|微信|我叫|我是|想约|到店|试课|体验一下|1[3-9]\d/.test(message);
+  return /预约|报名|联系|电话|手机|微信|微信号|名字|姓名|我叫|我是|想约|到店|试课|体验一下|1[3-9]\d/.test(message);
 }
 
 function formatFaqReply(answer: string, message: string) {
@@ -553,7 +583,7 @@ function createContextualFollowUp(message: string, answer: string) {
 function createLeadAcknowledgementReply(business: BusinessProfile, message: string) {
   const info = extractLeadInfoFromMessage(business, message);
   const hasDirectBookingIntent = /我想|想约|想预约|报名|到店|试课|体验一下|来一节|约一节/.test(message);
-  const hasContact = Boolean(info.phone || info.wechat || (info.name && hasDirectBookingIntent));
+  const hasContact = Boolean(info.phone || info.wechat || info.name);
 
   if (!hasContact && !(hasDirectBookingIntent && info.time)) {
     return "";
@@ -582,10 +612,9 @@ function createLeadAcknowledgementReply(business: BusinessProfile, message: stri
 }
 
 function extractLeadInfoFromMessage(business: BusinessProfile, message: string) {
-  const phone = message.match(/(?:\+?86[-\s]?)?(1[3-9]\d[-\s]?\d{4}[-\s]?\d{4})/)?.[1]?.replace(/\D/g, "") ?? "";
-  const wechat = message.match(/(?:微信|wechat|WeChat|wx|WX)[:：号是叫\s]*([A-Za-z0-9_-]{4,32})/)?.[1] ?? "";
-  const rawName = message.match(/(?:我叫|我是|姓名[:：\s]*)([\u4e00-\u9fa5A-Za-z]{1,12})/)?.[1] ?? "";
-  const name = /新手|小白|零基础|学生|上班族|女生|男生|会员/.test(rawName) ? "" : rawName;
+  const phone = extractPhoneNumber(message);
+  const wechat = extractWechatId(message);
+  const name = extractCustomerName(message);
   const time = message.match(/((?:今天|明天|后天|周[一二三四五六日天末]|星期[一二三四五六日天]|周末)(?:上午|中午|下午|晚上|晚间)?(?:[0-2]?\d点半?|[0-2]?\d[:：][0-5]\d)?|(?:上午|中午|下午|晚上|晚间)(?:[0-2]?\d点半?|[0-2]?\d[:：][0-5]\d)?|[0-2]?\d点半?|[0-2]?\d[:：][0-5]\d)/)?.[1] ?? "";
   const service = inferServiceFromMessage(business, message);
   const goal = inferGoalFromMessage(business, message);

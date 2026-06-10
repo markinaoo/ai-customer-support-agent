@@ -28,12 +28,12 @@ export default async function BusinessProfilePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-background">
-      <section className="business-hero relative min-h-[74svh] overflow-hidden sm:min-h-[82vh]" data-business-slug={business.slug}>
+      <section className="business-hero relative min-h-[66svh] overflow-hidden sm:min-h-[78vh]" data-business-slug={business.slug}>
         <Image src={business.heroImage} alt={`${business.name} 服务场景`} fill priority sizes="100vw" className="absolute inset-0 object-cover" />
         <div className="absolute inset-0 bg-[#14211f]/64" />
         <div className="absolute inset-x-0 top-0 h-36 bg-linear-to-b from-black/45 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-t from-black/55 to-transparent" />
-        <div className="relative mx-auto flex min-h-[74svh] max-w-7xl items-end px-4 py-10 pb-12 sm:min-h-[82vh] sm:items-center sm:px-6 sm:py-16">
+        <div className="relative mx-auto flex min-h-[66svh] max-w-7xl items-end px-4 py-10 pb-12 sm:min-h-[78vh] sm:items-center sm:px-6 sm:py-16">
           <div className="max-w-3xl text-white">
             <div className="flex flex-wrap gap-2">
               <Badge tone="amber" className="border-white/30 bg-white/15 text-white">

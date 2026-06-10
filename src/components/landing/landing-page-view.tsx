@@ -23,7 +23,7 @@ export function LandingPageView({
   const content = config.content;
   const services = getSelectedItems(business.services, content.featuredServiceIds).slice(0, 6);
   const faqs = getSelectedItems(business.faqs, content.featuredFaqIds).slice(0, 6);
-  const heroHeight = preview ? "min-h-[420px] sm:min-h-[460px]" : "min-h-[74svh] sm:min-h-[86vh]";
+  const heroHeight = preview ? "min-h-[420px] sm:min-h-[460px]" : "min-h-[66svh] sm:min-h-[78vh]";
 
   return (
     <main className={cn("bg-background", preview ? "rounded-lg border border-border" : "min-h-screen")}>
@@ -257,11 +257,11 @@ function HeroSignal({
 
 function getHeroObjectPositionClass(slug: string) {
   if (slug === "luna-fit") {
-    return "object-[68%_center] sm:object-center";
+    return "object-[72%_center] sm:object-center";
   }
 
   if (slug === "bella-hair") {
-    return "object-[58%_center] sm:object-center";
+    return "object-[76%_center] sm:object-center";
   }
 
   return "object-center";

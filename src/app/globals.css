@@ -59,11 +59,11 @@ select {
 }
 
 .business-hero[data-business-slug="luna-fit"] img {
-  object-position: 68% center;
+  object-position: 72% center;
 }
 
 .business-hero[data-business-slug="bella-hair"] img {
-  object-position: 58% center;
+  object-position: 76% center;
 }
 
 @media (min-width: 640px) {

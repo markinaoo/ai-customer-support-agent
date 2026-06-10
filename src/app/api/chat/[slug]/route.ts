@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { getBusinessProfile, getLocalBusinessProfile } from "@/lib/business-data";
 import {
   extractLeadCandidate,
+  getOrCreateConversation,
+  getCustomerMessagesForLead,
+  getRecentStoredMessages,
   type StoredMessage
 } from "@/lib/conversation-store";
 import { generateBusinessChatReply } from "@/lib/deepseek";
@@ -41,7 +44,9 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const requestHistory = parseRequestHistory(body.history);
-  const chatMessages = [...requestHistory, { role: "user" as const, content: message }].slice(-8);
+  const storedHistory = await getStoredHistory(slug, sessionId);
+  const conversationHistory = mergeMessageHistory([...storedHistory, ...requestHistory]);
+  const chatMessages = [...conversationHistory, { role: "user" as const, content: message }].slice(-18);
   let reply: string;
   let source: string;
 
@@ -59,7 +64,7 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
-  const customerMessages = chatMessages.filter((item) => item.role === "user").map((item) => item.content);
+  const customerMessages = getCustomerMessagesForLead(chatMessages);
   const leadCandidate = extractLeadCandidate(business, customerMessages, reply);
 
   return NextResponse.json({
@@ -93,4 +98,41 @@ function parseRequestHistory(history: unknown): StoredMessage[] {
       return { role, content };
     })
     .filter((item): item is StoredMessage => Boolean(item));
+}
+
+async function getStoredHistory(slug: string, sessionId: string) {
+  return withTimeout((async () => {
+    const conversation = await getOrCreateConversation(slug, sessionId);
+    return getRecentStoredMessages(conversation);
+  })(), 1500, []);
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => resolve(fallback), timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).catch(() => fallback).finally(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  });
+}
+
+function mergeMessageHistory(messages: StoredMessage[]) {
+  const merged: StoredMessage[] = [];
+  const seen = new Set<string>();
+
+  for (const message of messages) {
+    const key = `${message.role}:${message.content}`;
+
+    if (!seen.has(key)) {
+      merged.push(message);
+      seen.add(key);
+    }
+  }
+
+  return merged.slice(-18);
 }

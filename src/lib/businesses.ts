@@ -130,10 +130,10 @@ const seedBusinessProfiles: Record<string, SeedBusinessProfile> = {
     openingHours: "周一至周六 10:00-21:00，周日休息",
     phone: "13800000000",
     wechat: "bella-hair-demo",
-    tagline: "用AI客服承接每一次发型咨询，把附近顾客变成可跟进线索。",
+    tagline: "先帮顾客确认风格、价格边界和到店时间，再把高意向咨询交给门店跟进。",
     description:
-      "贝拉造型美学是一家面向都市白领与社区客群的美容美发门店，提供剪发、染烫、头皮护理与造型设计服务，适合需要提前沟通发型、预算和到店时间的顾客。",
-    brandTone: "专业、温柔、有审美建议；先确认顾客发长、预算、风格偏好，再推荐项目。",
+      "贝拉造型美学是一家面向都市白领与社区客群的精品美容美发门店，主打显白染发、法式烫发、发质修护和日常造型。顾客到店前可以先说明发长、发质、预算和想要的风格，再由门店老师确认最终方案。",
+    brandTone: "专业、温柔、有审美建议；像资深发型顾问一样先确认发长、发质、预算、风格偏好和到店时间，再推荐项目。",
     handoffMessage:
       "我已经帮你记录项目、时间和预算，稍后门店老师会通过电话或微信确认排班和最终方案。",
     heroImage: "/images/hero-bella-hair.jpg",
@@ -143,13 +143,13 @@ const seedBusinessProfiles: Record<string, SeedBusinessProfile> = {
       "你好，这里是贝拉造型美学预约咨询。你可以直接问剪发、染烫、护理价格，也可以先说发长、发量、想要的风格和到店时间，我帮你判断适合先咨询哪个项目。",
     landing: {
       eyebrow: "北京美容美发预约门店",
-      headline: "想换发型，先把风格、预算和到店时间问清楚",
+      headline: "先确认适合你的发型，再预约到店做方案",
       subheadline:
-        "贝拉造型美学提供剪发、染烫、头皮护理、发质修护和活动造型。顾客扫码后可先咨询适合的项目、参考价格和预约时间，再由门店老师确认最终方案。",
-      primaryCta: "咨询发型和价格",
-      secondaryCta: "查看门店项目",
-      trustPoints: ["先沟通发长发质", "价格先有参考", "老师再确认方案"],
-      painPoints: ["不知道自己适合什么发色或发型", "担心到店后价格和预期不一样", "想先确认老师档期和大概耗时"],
+        "贝拉造型美学提供显白染发、法式烫发、洗剪吹、头皮护理和活动造型。顾客扫码后先把发长、发质、预算和想来的时间说清楚，再由门店老师确认档期和最终价格。",
+      primaryCta: "先问发型顾问",
+      secondaryCta: "查看项目价格",
+      trustPoints: ["先看发长发质", "起步价清楚", "老师确认最终方案"],
+      painPoints: ["不知道自己适合什么发色或发型", "担心到店后价格超出预期", "想先确认老师档期和大概耗时"],
       highlights: [
         {
           title: "先判断风格",
@@ -170,7 +170,7 @@ const seedBusinessProfiles: Record<string, SeedBusinessProfile> = {
         { label: "洗剪吹", value: "¥88起" },
         { label: "热门项目", value: "剪发/染烫/护理" }
       ],
-      finalCta: "先说说你想换的风格和到店时间，门店老师会再确认适合的方案。"
+      finalCta: "先说说你的发长、预算和想换的风格，门店老师会再确认适合的方案。"
     },
     services: [
       {
@@ -514,7 +514,10 @@ export const businesses: Business[] = Object.values(seedBusinessProfiles).map((p
   brandTone: profile.brandTone,
   handoffMessage: profile.handoffMessage,
   heroImage: profile.heroImage,
-  coverImage: profile.coverImage
+  coverImage: profile.coverImage,
+  assistantLabel: profile.assistantLabel,
+  assistantIntro: profile.assistantIntro,
+  landing: profile.landing
 }));
 
 export const services: Service[] = Object.values(seedBusinessProfiles).flatMap((business) =>

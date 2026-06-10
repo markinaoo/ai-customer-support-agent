@@ -44,7 +44,7 @@ export default async function ChatPage({ params }: PageProps) {
           </Link>
         </div>
       </header>
-      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <section className="mx-auto max-w-7xl px-0 py-0 sm:px-6 sm:py-6">
         <AIChat business={business} />
       </section>
     </main>

@@ -22,12 +22,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   const assistantLabel = business.assistantLabel ?? "在线咨询顾问";
   const assistantIntro =
     business.assistantIntro ?? `你好，我是 ${business.name} 的在线咨询顾问。可以先帮你了解价格、预约、营业时间、地址和到店准备。`;
-  const quickPrompts = [
-    business.slug === "luna-fit" ? "体验课包含什么？" : `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
-    business.slug === "luna-fit" ? "我没有基础可以吗？" : `${business.services[1]?.name ?? "热门项目"}多少钱？`,
-    business.slug === "luna-fit" ? "会不会强制办卡？" : "可以指定老师吗？",
-    business.slug === "luna-fit" ? "我想明天晚上体验课" : "门店地址在哪里？"
-  ];
+  const quickPrompts = getQuickPrompts(business);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -115,7 +110,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     setInput("");
     setLoading(true);
     const minimumTypingDelay = waitForHumanReplyDelay(trimmed);
-    const outgoingHistory = [...messages, userMessage].slice(-10);
+    const outgoingHistory = [...messages, userMessage].slice(-18);
 
     try {
       const response = await fetch(`/api/chat/${business.slug}`, {
@@ -192,7 +187,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
 
   return (
     <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <Card className="min-w-0 min-h-[560px] lg:min-h-[620px]">
+      <Card className="min-h-[calc(100svh-150px)] min-w-0 rounded-none border-x-0 sm:min-h-[560px] sm:rounded-lg sm:border-x lg:min-h-[620px]">
         <CardHeader className="border-b border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -207,8 +202,8 @@ export function AIChat({ business }: { business: BusinessProfile }) {
             </span>
           </div>
         </CardHeader>
-        <CardContent className="flex h-[min(68svh,540px)] min-h-[430px] flex-col p-0 sm:h-[540px]">
-          <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+        <CardContent className="flex h-[calc(100svh-274px)] min-h-[440px] flex-col p-0 sm:h-[540px]">
+          <div className="flex-1 space-y-4 overflow-y-auto p-3 sm:p-5">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -221,7 +216,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
                 ) : null}
                 <div
                   className={cn(
-                    "max-w-[84%] break-words rounded-lg px-4 py-3 text-sm leading-6 sm:max-w-[78%]",
+                    "max-w-[88%] break-words rounded-lg px-3 py-2.5 text-[15px] leading-6 sm:max-w-[78%] sm:px-4 sm:py-3 sm:text-sm",
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                   )}
                 >
@@ -241,7 +236,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
               </div>
             ) : null}
           </div>
-          <div className="border-t border-border p-4 sm:p-5">
+          <div className="border-t border-border p-3 sm:p-5">
             <div className="mb-3 flex max-w-full gap-2 overflow-x-auto pb-1">
               {quickPrompts.map((prompt) => (
                 <button
@@ -267,7 +262,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
           </div>
         </CardContent>
       </Card>
-      <div className="space-y-4">
+      <div className="hidden space-y-4 lg:block">
         <Card>
           <CardHeader>
             <CardTitle>咨询进度</CardTitle>
@@ -303,6 +298,23 @@ function waitForHumanReplyDelay(message: string) {
   const targetDelay = baseDelay + thinkingDelay;
 
   return new Promise((resolve) => window.setTimeout(resolve, targetDelay));
+}
+
+function getQuickPrompts(business: BusinessProfile) {
+  if (business.slug === "luna-fit") {
+    return ["体验课包含什么？", "我没有基础可以吗？", "会不会强制办卡？", "我想明天晚上体验课"];
+  }
+
+  if (business.slug === "bella-hair") {
+    return ["我想染显白一点多少钱？", "头发到锁骨需要多久？", "周六下午可以预约吗？", "可以先推荐发色吗？"];
+  }
+
+  return [
+    `今天可以预约${business.services[0]?.name ?? "服务"}吗？`,
+    `${business.services[1]?.name ?? "热门项目"}多少钱？`,
+    "可以指定老师吗？",
+    "门店地址在哪里？"
+  ];
 }
 
 function createIdleSalesNudge(business: BusinessProfile, messages: ChatMessage[]) {
