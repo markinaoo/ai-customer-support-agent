@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import QRCode from "qrcode";
+import { getAppBaseUrl } from "@/lib/app-url";
 import { getBusinessProfile } from "@/lib/business-data";
 import type { BusinessProfile } from "@/lib/businesses";
 import { getPublicLandingConfig } from "@/lib/landing-pages";
@@ -78,25 +78,4 @@ function getQrHeaders(link: string) {
     "Cache-Control": "no-store",
     "X-QR-Target": link
   };
-}
-
-async function getAppBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-
-  if (configuredUrl) {
-    return configuredUrl.replace(/\/$/, "");
-  }
-
-  const requestHeaders = await headers();
-  const forwardedHost = requestHeaders.get("x-forwarded-host");
-  const host = (forwardedHost ?? requestHeaders.get("host") ?? "").split(",")[0].trim();
-
-  if (!host) {
-    return "https://yourdomain.com";
-  }
-
-  const forwardedProto = requestHeaders.get("x-forwarded-proto")?.split(",")[0].trim();
-  const protocol = forwardedProto || (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
-
-  return `${protocol}://${host}`;
 }

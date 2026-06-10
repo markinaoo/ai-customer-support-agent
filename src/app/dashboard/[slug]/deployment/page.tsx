@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import type { LucideIcon } from "lucide-react";
@@ -11,6 +10,7 @@ import { DownloadQrButton } from "@/components/download-qr-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAppBaseUrl } from "@/lib/app-url";
 import { getBusinessProfile } from "@/lib/business-data";
 import { getPublicLandingConfig } from "@/lib/landing-pages";
 import { chatPath, landingPagePath, publicBusinessPath } from "@/lib/routes";
@@ -185,27 +185,6 @@ export default async function DeploymentPage({ params }: PageProps) {
       </div>
     </div>
   );
-}
-
-async function getAppBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-
-  if (configuredUrl) {
-    return configuredUrl.replace(/\/$/, "");
-  }
-
-  const requestHeaders = await headers();
-  const forwardedHost = requestHeaders.get("x-forwarded-host");
-  const host = (forwardedHost ?? requestHeaders.get("host") ?? "").split(",")[0].trim();
-
-  if (!host) {
-    return "https://yourdomain.com";
-  }
-
-  const forwardedProto = requestHeaders.get("x-forwarded-proto")?.split(",")[0].trim();
-  const protocol = forwardedProto || (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
-
-  return `${protocol}://${host}`;
 }
 
 function LinkRow({
