@@ -138,6 +138,40 @@ const seedBusinessProfiles: Record<string, SeedBusinessProfile> = {
       "我已经帮你记录项目、时间和预算，稍后门店老师会通过电话或微信确认排班和最终方案。",
     heroImage: "/images/hero-bella-hair.jpg",
     coverImage: "/images/hero-bella-hair.jpg",
+    assistantLabel: "发型预约咨询",
+    assistantIntro:
+      "你好，这里是贝拉造型美学预约咨询。你可以直接问剪发、染烫、护理价格，也可以先说发长、发量、想要的风格和到店时间，我帮你判断适合先咨询哪个项目。",
+    landing: {
+      eyebrow: "北京美容美发预约门店",
+      headline: "想换发型，先把风格、预算和到店时间问清楚",
+      subheadline:
+        "贝拉造型美学提供剪发、染烫、头皮护理、发质修护和活动造型。顾客扫码后可先咨询适合的项目、参考价格和预约时间，再由门店老师确认最终方案。",
+      primaryCta: "咨询发型和价格",
+      secondaryCta: "查看门店项目",
+      trustPoints: ["先沟通发长发质", "价格先有参考", "老师再确认方案"],
+      painPoints: ["不知道自己适合什么发色或发型", "担心到店后价格和预期不一样", "想先确认老师档期和大概耗时"],
+      highlights: [
+        {
+          title: "先判断风格",
+          description: "顾客可以先说明发长、发量、脸型、历史染烫和想要的风格，减少到店前反复沟通。"
+        },
+        {
+          title: "价格有边界",
+          description: "剪发、染烫、护理项目先展示起步价，最终价格再根据发量、长度和方案确认。"
+        },
+        {
+          title: "线索可跟进",
+          description: "顾客留下项目、到店时间和联系方式后，门店老师再确认排班、时长和最终方案。"
+        }
+      ],
+      journey: ["扫码进入落地页", "说明发型需求", "咨询价格和耗时", "门店老师跟进确认"],
+      proofMetrics: [
+        { label: "营业时间", value: "10:00-21:00" },
+        { label: "洗剪吹", value: "¥88起" },
+        { label: "热门项目", value: "剪发/染烫/护理" }
+      ],
+      finalCta: "先说说你想换的风格和到店时间，门店老师会再确认适合的方案。"
+    },
     services: [
       {
         name: "女士剪发",

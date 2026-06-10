@@ -1,0 +1,72 @@
+import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import QRCode from "qrcode";
+import { getBusinessProfile } from "@/lib/business-data";
+import { getPublicLandingConfig } from "@/lib/landing-pages";
+import { chatPath, landingPagePath, publicBusinessPath } from "@/lib/routes";
+
+type RouteContext = {
+  params: Promise<{ slug: string }>;
+};
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { slug } = await context.params;
+  const business = await getBusinessProfile(slug);
+
+  if (!business) {
+    return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  }
+
+  const target = request.nextUrl.searchParams.get("target");
+  const landingConfig = await getPublicLandingConfig(business);
+  const baseUrl = await getAppBaseUrl();
+  const fallbackTarget = landingConfig.qrTarget === "chat" ? "chat" : "landing";
+  const normalizedTarget = target === "chat" || target === "business" || target === "landing" ? target : fallbackTarget;
+  const path =
+    normalizedTarget === "chat"
+      ? chatPath(slug)
+      : normalizedTarget === "business"
+        ? publicBusinessPath(slug)
+        : landingPagePath(slug);
+  const link = `${baseUrl}${path}`;
+  const svg = await QRCode.toString(link, {
+    type: "svg",
+    width: 720,
+    margin: 2,
+    color: {
+      dark: "#14211f",
+      light: "#ffffff"
+    }
+  });
+
+  return new NextResponse(svg, {
+    headers: {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-QR-Target": link
+    }
+  });
+}
+
+async function getAppBaseUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, "");
+  }
+
+  const requestHeaders = await headers();
+  const forwardedHost = requestHeaders.get("x-forwarded-host");
+  const host = (forwardedHost ?? requestHeaders.get("host") ?? "").split(",")[0].trim();
+
+  if (!host) {
+    return "https://yourdomain.com";
+  }
+
+  const forwardedProto = requestHeaders.get("x-forwarded-proto")?.split(",")[0].trim();
+  const protocol = forwardedProto || (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+
+  return `${protocol}://${host}`;
+}

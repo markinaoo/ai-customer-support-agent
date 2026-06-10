@@ -23,7 +23,7 @@ export function LandingPageView({
   const content = config.content;
   const services = getSelectedItems(business.services, content.featuredServiceIds).slice(0, 6);
   const faqs = getSelectedItems(business.faqs, content.featuredFaqIds).slice(0, 6);
-  const heroHeight = preview ? "min-h-[460px]" : "min-h-[86vh]";
+  const heroHeight = preview ? "min-h-[420px] sm:min-h-[460px]" : "min-h-[74svh] sm:min-h-[86vh]";
 
   return (
     <main className={cn("bg-background", preview ? "rounded-lg border border-border" : "min-h-screen")}>
@@ -32,21 +32,21 @@ export function LandingPageView({
         <img
           src={config.heroImage || business.coverImage}
           alt={`${business.name} 服务环境`}
-          className="absolute inset-0 h-full w-full object-cover"
+          className={cn("absolute inset-0 h-full w-full object-cover", getHeroObjectPositionClass(business.slug))}
         />
         <div className={cn("absolute inset-0", theme.heroOverlayClass)} />
         <div className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-black/45 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-black/55 to-transparent" />
-        <div className={cn("relative mx-auto flex max-w-7xl items-center px-4 py-14 sm:px-6", heroHeight)}>
+        <div className={cn("relative mx-auto flex max-w-7xl items-end px-4 py-10 pb-12 sm:items-center sm:px-6 sm:py-14", heroHeight)}>
           <div className="max-w-3xl text-white">
             <div className="flex flex-wrap gap-2">
               <Badge className={theme.heroAccentClass}>{content.eyebrow}</Badge>
               <DemoLabel />
             </div>
-            <h1 className={cn("mt-5 font-semibold leading-[1.12]", preview ? "text-3xl sm:text-5xl" : "text-4xl sm:text-6xl")}>
+            <h1 className={cn("mt-5 max-w-[15ch] font-semibold leading-[1.12] sm:max-w-3xl", preview ? "text-3xl sm:text-5xl" : "text-3xl sm:text-6xl")}>
               {content.headline}
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-white/85">{content.subheadline}</p>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-white/85 sm:text-lg sm:leading-8">{content.subheadline}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <LandingAction href={chatPath(business.slug)} preview={preview} variant="secondary">
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
@@ -253,6 +253,18 @@ function HeroSignal({
       </div>
     </div>
   );
+}
+
+function getHeroObjectPositionClass(slug: string) {
+  if (slug === "luna-fit") {
+    return "object-[68%_center] sm:object-center";
+  }
+
+  if (slug === "bella-hair") {
+    return "object-[58%_center] sm:object-center";
+  }
+
+  return "object-center";
 }
 
 function LandingAction({

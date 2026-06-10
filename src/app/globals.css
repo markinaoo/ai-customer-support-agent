@@ -30,6 +30,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -38,6 +39,7 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+  overflow-x: hidden;
 }
 
 a {
@@ -54,4 +56,19 @@ select {
 
 ::selection {
   background: rgba(8, 127, 122, 0.22);
+}
+
+.business-hero[data-business-slug="luna-fit"] img {
+  object-position: 68% center;
+}
+
+.business-hero[data-business-slug="bella-hair"] img {
+  object-position: 58% center;
+}
+
+@media (min-width: 640px) {
+  .business-hero[data-business-slug="luna-fit"] img,
+  .business-hero[data-business-slug="bella-hair"] img {
+    object-position: center;
+  }
 }

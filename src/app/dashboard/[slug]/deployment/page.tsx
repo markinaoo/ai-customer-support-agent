@@ -41,6 +41,8 @@ export default async function DeploymentPage({ params }: PageProps) {
   const aiChatLink = `${baseUrl}${aiChatPath}`;
   const landingLink = `${baseUrl}${lpPath}`;
   const mainQrLink = landingConfig.qrTarget === "chat" ? aiChatLink : landingLink;
+  const qrImagePath = `/api/qr/${slug}?target=${landingConfig.qrTarget === "chat" ? "chat" : "landing"}`;
+  const qrImageLink = `${baseUrl}${qrImagePath}`;
   const mainQrLabel = landingConfig.qrTarget === "chat" ? "在线咨询页" : "客户落地页";
   const widgetScript = `<script src="${baseUrl}/widget.js" data-business-slug="${slug}"></script>`;
   const qrSvg = await QRCode.toString(mainQrLink, {
@@ -75,6 +77,7 @@ export default async function DeploymentPage({ params }: PageProps) {
               <LinkRow icon={Sparkles} label="客户落地页（主二维码）" href={lpPath} copyText={landingLink} />
               <LinkRow icon={MessageCircle} label="在线咨询页" href={aiChatPath} copyText={aiChatLink} />
               <LinkRow icon={Store} label="公共商家主页" href={publicPath} copyText={publicLink} />
+              <LinkRow icon={QrCode} label="二维码 SVG 图片" href={qrImagePath} copyText={qrImageLink} />
             </CardContent>
           </Card>
 

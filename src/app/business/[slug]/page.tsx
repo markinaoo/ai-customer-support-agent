@@ -28,12 +28,12 @@ export default async function BusinessProfilePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-background">
-      <section className="relative min-h-[82vh] overflow-hidden">
+      <section className="business-hero relative min-h-[74svh] overflow-hidden sm:min-h-[82vh]" data-business-slug={business.slug}>
         <Image src={business.heroImage} alt={`${business.name} 服务场景`} fill priority sizes="100vw" className="absolute inset-0 object-cover" />
         <div className="absolute inset-0 bg-[#14211f]/64" />
         <div className="absolute inset-x-0 top-0 h-36 bg-linear-to-b from-black/45 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-t from-black/55 to-transparent" />
-        <div className="relative mx-auto flex min-h-[82vh] max-w-7xl items-center px-4 py-16 sm:px-6">
+        <div className="relative mx-auto flex min-h-[74svh] max-w-7xl items-end px-4 py-10 pb-12 sm:min-h-[82vh] sm:items-center sm:px-6 sm:py-16">
           <div className="max-w-3xl text-white">
             <div className="flex flex-wrap gap-2">
               <Badge tone="amber" className="border-white/30 bg-white/15 text-white">
@@ -44,8 +44,8 @@ export default async function BusinessProfilePage({ params }: PageProps) {
               </Badge>
               <DemoLabel />
             </div>
-            <h1 className="mt-5 text-5xl font-semibold leading-[1.12] sm:text-6xl">{business.name}</h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-white/86">{business.description}</p>
+            <h1 className="mt-5 text-4xl font-semibold leading-[1.12] sm:text-6xl">{business.name}</h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-white/86 sm:text-lg sm:leading-8">{business.description}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={chatPath(business.slug)} className={buttonClasses({ variant: "secondary", size: "lg" })}>
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />

@@ -73,7 +73,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
     setMessages((current) => [...current, userMessage]);
     setInput("");
     setLoading(true);
-    const minimumTypingDelay = waitForHumanReplyDelay();
+    const minimumTypingDelay = waitForHumanReplyDelay(trimmed);
     const outgoingHistory = [...messages, userMessage].slice(-10);
 
     try {
@@ -150,8 +150,8 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-      <Card className="min-h-[620px]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <Card className="min-w-0 min-h-[560px] lg:min-h-[620px]">
         <CardHeader className="border-b border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -166,7 +166,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
             </span>
           </div>
         </CardHeader>
-        <CardContent className="flex h-[540px] flex-col p-0">
+        <CardContent className="flex h-[min(68svh,540px)] min-h-[430px] flex-col p-0 sm:h-[540px]">
           <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
             {messages.map((message) => (
               <div
@@ -180,7 +180,7 @@ export function AIChat({ business }: { business: BusinessProfile }) {
                 ) : null}
                 <div
                   className={cn(
-                    "max-w-[78%] rounded-lg px-4 py-3 text-sm leading-6",
+                    "max-w-[84%] break-words rounded-lg px-4 py-3 text-sm leading-6 sm:max-w-[78%]",
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                   )}
                 >
@@ -201,13 +201,13 @@ export function AIChat({ business }: { business: BusinessProfile }) {
             ) : null}
           </div>
           <div className="border-t border-border p-4 sm:p-5">
-            <div className="mb-3 flex gap-2 overflow-x-auto">
+            <div className="mb-3 flex max-w-full gap-2 overflow-x-auto pb-1">
               {quickPrompts.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
                   onClick={() => void sendMessage(prompt)}
-                  className="h-9 shrink-0 rounded-md border border-border bg-card px-3 text-sm transition hover:bg-muted"
+                  className="h-9 max-w-[78vw] shrink-0 truncate rounded-md border border-border bg-card px-3 text-sm transition hover:bg-muted sm:max-w-none"
                 >
                   {prompt}
                 </button>
@@ -256,8 +256,10 @@ export function AIChat({ business }: { business: BusinessProfile }) {
   );
 }
 
-function waitForHumanReplyDelay() {
-  const targetDelay = 2200 + Math.floor(Math.random() * 800);
+function waitForHumanReplyDelay(message: string) {
+  const baseDelay = 1900 + Math.floor(Math.random() * 900);
+  const thinkingDelay = Math.min(1100, Math.floor(message.length * 22));
+  const targetDelay = baseDelay + thinkingDelay;
 
   return new Promise((resolve) => window.setTimeout(resolve, targetDelay));
 }
